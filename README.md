@@ -116,6 +116,7 @@ VoidWalker now includes comprehensive support for HTB Dante ProLab with all tool
 - ✓ LinPEAS, WinPEAS, pspy
 - ✓ BloodHound + SharpHound
 - ✓ Metasploit Framework
+- ✓ Wordlists: SecLists, Trickest wordlists collection
 - ✓ rockyou.txt auto-extraction
 - ✓ Bash aliases for common commands
 

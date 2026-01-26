@@ -486,10 +486,11 @@ TOOL_CATEGORIES = {
         ]
     },
     "Wordlists": {
-        "description": "SecLists, rockyou, Kerberos usernames",
+        "description": "SecLists, Trickest wordlists, rockyou, Kerberos usernames",
         "function": "setup_wordlists",
         "repos": [
             ("SecLists", "https://github.com/danielmiessler/SecLists.git"),
+            ("Trickest-Wordlists", "https://github.com/trickest/wordlists.git"),
         ],
         "files": [
             ("A-ZSurnames.txt", "https://raw.githubusercontent.com/attackdebris/kerberos_enum_userlists/master/A-ZSurnames.txt"),
