@@ -36,10 +36,15 @@
 - Installs system packages via `apt-get` (Ubuntu/Debian)
 - Installs Python tools via `pipx`
 - Installs Go tools via `go install` (and select .deb packages)
+- **Installs Ruby gems** (wpscan, evil-winrm)
+- **Installs special tools** (kerbrute, ligolo-ng, chisel)
 - Downloads Windows binaries, ZIPs, and Git repos into the Windows toolkit
 - Clones tool repos and downloads files across curated categories
+- **Auto-extracts rockyou.txt** wordlist
+- **Creates bash aliases** for common pentesting commands
 - Provides an installation preview plus success/fail summary stats
 - Includes CLI search helpers for PoCs, NSE scripts, Exploit-DB, Shodan, and dorks
+- **HTB Dante ProLab Ready** - Includes all tools mentioned in HTB Dante walkthroughs
 
 ## Arsenal Map
 ```
@@ -97,6 +102,45 @@ python3 voidwalker.py dork
 |-- notes/ (cheatsheets, methodology)
 |-- scans/
 |-- reports/
+```
+
+## HTB Dante ProLab Support
+VoidWalker now includes comprehensive support for HTB Dante ProLab with all tools from the official walkthroughs:
+
+**Included Features:**
+- ✓ All essential Ubuntu/Debian packages (fping, nmap, enum4linux, patator, etc.)
+- ✓ Ruby gems (wpscan, evil-winrm)
+- ✓ Special tools (kerbrute, ligolo-ng, chisel) - auto-downloaded and installed
+- ✓ Impacket suite (via pipx)
+- ✓ CrackMapExec (via pipx)
+- ✓ LinPEAS, WinPEAS, pspy
+- ✓ BloodHound + SharpHound
+- ✓ Metasploit Framework
+- ✓ Wordlists: SecLists, Trickest wordlists collection
+- ✓ rockyou.txt auto-extraction
+- ✓ Bash aliases for common commands
+
+**Bash Aliases Added:**
+```bash
+# Server aliases
+www              # Python HTTP server on port 80
+wwwphp           # PHP server on port 80
+smbserve         # Impacket SMB server
+
+# Nmap shortcuts
+nmap-quick       # Fast port scan
+nmap-full        # Full service scan
+nmap-vuln        # Vulnerability scan
+
+# Enumeration
+enum-smb         # enum4linux full scan
+enum-ldap        # LDAP enumeration
+ffuf-dir         # Directory fuzzing with SecLists
+```
+
+To activate aliases after installation:
+```bash
+source ~/.bash_aliases
 ```
 
 ## Do / Don't

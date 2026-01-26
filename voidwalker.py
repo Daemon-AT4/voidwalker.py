@@ -486,10 +486,11 @@ TOOL_CATEGORIES = {
         ]
     },
     "Wordlists": {
-        "description": "SecLists, rockyou, Kerberos usernames",
+        "description": "SecLists, Trickest wordlists, rockyou, Kerberos usernames",
         "function": "setup_wordlists",
         "repos": [
             ("SecLists", "https://github.com/danielmiessler/SecLists.git"),
+            ("Trickest-Wordlists", "https://github.com/trickest/wordlists.git"),
         ],
         "files": [
             ("A-ZSurnames.txt", "https://raw.githubusercontent.com/attackdebris/kerberos_enum_userlists/master/A-ZSurnames.txt"),
@@ -498,7 +499,8 @@ TOOL_CATEGORIES = {
 }
 
 APT_TOOLS = [
-    # Reconnaissance & Scanning
+    # Reconnaissance & Scanning - HTB Dante essentials
+    # Note: For UDP scanning, use unicornscan, hping3, or nmap -sU
     "nmap", "masscan", "zmap", "unicornscan", "netdiscover", "arp-scan",
     "amass", "subfinder", "assetfinder", "dnsrecon", "dnsenum", "fierce",
     "whois", "host", "dig", "traceroute", "hping3", "fping",
@@ -508,7 +510,7 @@ APT_TOOLS = [
     "davtest", "curl", "wget", "httpie", "lynx",
     # Password Attacks
     "hydra", "medusa", "john", "hashcat", "hashid", "hash-identifier",
-    "crunch", "cewl", "wordlists", "seclists",
+    "crunch", "cewl", "wordlists", "seclists", "patator",
     # Wireless
     "aircrack-ng", "reaver", "bully", "pixiewps", "wifite", "kismet",
     "mdk3", "mdk4", "macchanger", "iw", "wireless-tools",
@@ -519,9 +521,9 @@ APT_TOOLS = [
     "wireshark", "tshark", "tcpdump", "ettercap-common", "ettercap-text-only",
     "bettercap", "dsniff", "macof", "arpspoof", "responder",
     # Post-Exploitation
-    "enum4linux-ng", "smbclient", "smbmap", "rpcclient", "nbtscan",
+    "enum4linux-ng", "enum4linux", "smbclient", "smbmap", "rpcclient", "nbtscan",
     "onesixtyone", "snmpwalk", "snmp", "redis-tools",
-    "ldap-utils", "nfs-common", "rpcbind",
+    "ldap-utils", "nfs-common", "rpcbind", "krb5-user",
     # Pivoting & Tunneling
     "proxychains4", "sshuttle", "socat", "stunnel4", "redsocks",
     "chisel", "netcat-traditional", "ncat", "cryptcat",
@@ -533,11 +535,14 @@ APT_TOOLS = [
     "rlwrap", "tmux", "screen", "vim", "nano", "jq", "yq",
     "tree", "htop", "ncdu", "lsof", "strace", "ltrace",
     "gdb", "radare2", "ghidra",
-    # Development & Build
-    "golang-go", "rustc", "cargo", "python3-pip", "pipx",
+    # Development & Build - HTB Dante essentials
+    "golang-go", "rustc", "cargo", "python3-pip", "pipx", "python3-venv",
     "ruby", "ruby-dev", "ruby-bundler", "nodejs", "npm",
     "build-essential", "cmake", "make", "gcc", "g++",
     "git", "git-lfs", "p7zip-full", "unzip", "zip",
+    "libssl-dev", "libffi-dev", "libpcap-dev",
+    "apt-transport-https", "ca-certificates", "gnupg", "lsb-release",
+    "e2fsprogs", "dnsutils", "ssh",
     # Networking
     "openvpn", "wireguard", "iproute2", "net-tools", "bridge-utils",
     "iptables", "nftables", "ufw",
@@ -635,13 +640,47 @@ GO_TOOLS = [
 
 CARGO_TOOLS = [
     "rustscan",
-    "feroxbuster", 
+    "feroxbuster",
     "ripgrep",
     "fd-find",
     "bat",
     "exa",
     "hyperfine",
 ]
+
+GEM_TOOLS = [
+    # Ruby-based Penetration Testing Tools
+    "wpscan",      # WordPress security scanner
+    "evil-winrm",  # Windows Remote Management (WinRM) shell
+]
+
+# Special Tools - Binary downloads that need custom installation
+SPECIAL_TOOLS = {
+    "kerbrute": {
+        "type": "binary",
+        "url": "https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_linux_amd64",
+        "dest": "/usr/local/bin/kerbrute",
+        "chmod": True,
+    },
+    "ligolo-proxy": {
+        "type": "archive",
+        "url": "https://github.com/nicocha30/ligolo-ng/releases/download/v0.6.2/ligolo-ng_proxy_0.6.2_linux_amd64.tar.gz",
+        "dest": "/usr/local/bin/ligolo-proxy",
+        "chmod": True,
+    },
+    "ligolo-agent": {
+        "type": "archive",
+        "url": "https://github.com/nicocha30/ligolo-ng/releases/download/v0.6.2/ligolo-ng_agent_0.6.2_linux_amd64.tar.gz",
+        "dest": "/usr/local/bin/ligolo-agent",
+        "chmod": True,
+    },
+    "chisel": {
+        "type": "archive",
+        "url": "https://github.com/jpillora/chisel/releases/download/v1.9.1/chisel_1.9.1_linux_amd64.gz",
+        "dest": "/usr/local/bin/chisel",
+        "chmod": True,
+    },
+}
 
 class VoidWalker:
     def __init__(self):
@@ -1169,7 +1208,188 @@ class VoidWalker:
         
         self.complete_status_line("Go Tools", go_success, go_fail)
         print()
+
+        # Install Ruby Gems
+        gem_success, gem_fail = 0, 0
+        total_gem = len(GEM_TOOLS)
+
+        if total_gem > 0:
+            for i, tool in enumerate(GEM_TOOLS, 1):
+                self.show_live_status("Ruby Gems", i, total_gem, tool, "downloading")
+                if self.run_cmd(["sudo", "gem", "install", tool]):
+                    gem_success += 1
+                    self.stats["ok"] += 1
+                else:
+                    gem_fail += 1
+                    self.stats["fail"] += 1
+
+            self.complete_status_line("Ruby Gems", gem_success, gem_fail)
+            print()
+
+        # Install Special Tools (kerbrute, ligolo-ng, chisel)
+        special_success, special_fail = 0, 0
+        total_special = len(SPECIAL_TOOLS)
+
+        if total_special > 0:
+            for i, (name, config) in enumerate(SPECIAL_TOOLS.items(), 1):
+                self.show_live_status("Special Tools", i, total_special, name, "downloading")
+                if self.install_special_tool(name, config):
+                    special_success += 1
+                    self.stats["ok"] += 1
+                else:
+                    special_fail += 1
+                    self.stats["fail"] += 1
+
+            self.complete_status_line("Special Tools", special_success, special_fail)
+            print()
+
+        # Extract rockyou.txt if it exists
+        self.extract_rockyou()
+
+        # Create bash aliases
+        self.create_bash_aliases()
+
         self.show_summary()
+
+    def install_special_tool(self, name: str, config: Dict) -> bool:
+        """Install special tools that need custom handling."""
+        try:
+            import tempfile
+            import gzip
+
+            dest_path = Path(config["dest"])
+
+            if config["type"] == "binary":
+                # Direct binary download
+                if self.download_file(config["url"], dest_path):
+                    if config.get("chmod"):
+                        dest_path.chmod(0o755)
+                    return True
+
+            elif config["type"] == "archive":
+                # Download and extract archive
+                with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tmp:
+                    if self.download_file(config["url"], Path(tmp.name)):
+                        tmp_path = Path(tmp.name)
+
+                        # Handle .gz files
+                        if tmp_path.suffix == '.gz' and not str(tmp_path).endswith('.tar.gz'):
+                            with gzip.open(tmp_path, 'rb') as f_in:
+                                with open(dest_path, 'wb') as f_out:
+                                    f_out.write(f_in.read())
+                            tmp_path.unlink()
+                        # Handle .tar.gz files
+                        else:
+                            with tarfile.open(tmp_path, 'r:gz') as tar:
+                                # Extract binary (usually agent or proxy for ligolo)
+                                binary_name = name.split('-')[-1] if '-' in name else name
+                                for member in tar.getmembers():
+                                    if member.name.endswith(binary_name) or member.name == binary_name:
+                                        member.name = dest_path.name
+                                        tar.extract(member, dest_path.parent)
+                                        break
+                            tmp_path.unlink()
+
+                        if config.get("chmod") and dest_path.exists():
+                            dest_path.chmod(0o755)
+                        return dest_path.exists()
+
+            return False
+        except Exception as e:
+            return False
+
+    def extract_rockyou(self):
+        """Extract rockyou.txt wordlist if it's compressed."""
+        rockyou_gz = Path("/usr/share/wordlists/rockyou.txt.gz")
+        rockyou_txt = Path("/usr/share/wordlists/rockyou.txt")
+
+        if rockyou_gz.exists() and not rockyou_txt.exists():
+            try:
+                print(f"  {Colors.YELLOW}Extracting rockyou.txt...{Colors.RESET}")
+                subprocess.run(["gunzip", str(rockyou_gz)], check=False)
+                if rockyou_txt.exists():
+                    print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} rockyou.txt extracted{Colors.RESET}")
+                else:
+                    print(f"  {Colors.BRIGHT_RED}{Symbols.CROSS} Failed to extract rockyou.txt{Colors.RESET}")
+            except Exception:
+                print(f"  {Colors.BRIGHT_RED}{Symbols.CROSS} Error extracting rockyou.txt{Colors.RESET}")
+        elif rockyou_txt.exists():
+            print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} rockyou.txt already available{Colors.RESET}")
+
+    def create_bash_aliases(self):
+        """Create useful bash aliases for penetration testing."""
+        aliases_content = """# VoidWalker HTB Tools Aliases
+# Generated by VoidWalker v{}
+
+# General Utilities
+alias ll='ls -alh'
+alias www='python3 -m http.server 80'
+alias wwwphp='php -S 0.0.0.0:80'
+alias ports='netstat -tulpn'
+alias myip='ip -4 addr | grep -oP \"(?<=inet\\s)\\d+(\.\\d+){{3}}\"'
+alias nse='ls /usr/share/nmap/scripts/ | grep '
+
+# Impacket Shortcuts
+alias impacket-secretsdump='impacket-secretsdump'
+alias impacket-psexec='impacket-psexec'
+alias impacket-GetNPUsers='impacket-GetNPUsers'
+alias impacket-mssqlclient='impacket-mssqlclient'
+alias impacket-smbserver='impacket-smbserver'
+alias impacket-wmiexec='impacket-wmiexec'
+
+# Common Nmap Scans
+alias nmap-quick='nmap -T4 -p- --min-rate=1000'
+alias nmap-full='nmap -p- -sV -sC -A --min-rate=1000'
+alias nmap-vuln='nmap -sV --script vuln'
+alias nmap-udp='nmap -sU -T4'
+
+# Enumeration
+alias enum-smb='enum4linux -a'
+alias enum-ldap='ldapsearch -x -h'
+alias enum-dns='dnsenum'
+
+# Web Enumeration
+alias ffuf-dir='ffuf -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u'
+alias ffuf-vhost='ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u'
+alias gobust-dir='gobuster dir -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u'
+
+# File Transfer
+alias getfile='wget'
+alias pyserve='python3 -m http.server'
+alias smbserve='impacket-smbserver share . -smb2support'
+
+# Reverse Shells
+alias rlwrap-nc='rlwrap nc -lvnp'
+
+# Kerberos
+alias kerb-users='impacket-GetNPUsers -dc-ip'
+alias kerb-tgt='impacket-getTGT -dc-ip'
+
+# Misc
+alias linenum='bash ~/voidwalker/tools/linux/enum/LinEnum.sh'
+alias linpeas='bash ~/voidwalker/tools/linux/enum/linpeas.sh'
+alias pspy='~/voidwalker/tools/linux/enum/pspy64'
+""".format(__version__)
+
+        try:
+            aliases_path = Path.home() / ".bash_aliases"
+
+            # Read existing content if file exists
+            existing_content = ""
+            if aliases_path.exists():
+                with open(aliases_path, 'r') as f:
+                    existing_content = f.read()
+
+            # Only add if not already present
+            if "VoidWalker HTB Tools Aliases" not in existing_content:
+                with open(aliases_path, 'a') as f:
+                    f.write("\n" + aliases_content)
+                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Bash aliases created at ~/.bash_aliases{Colors.RESET}")
+                print(f"  {Colors.YELLOW}Run 'source ~/.bash_aliases' to activate{Colors.RESET}")
+            else:
+                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Bash aliases already configured{Colors.RESET}")
+        except Exception as e:
+            print(f"  {Colors.BRIGHT_RED}{Symbols.CROSS} Failed to create aliases: {e}{Colors.RESET}")
 
     def install_windows_binaries(self):
         self.clear_screen()
