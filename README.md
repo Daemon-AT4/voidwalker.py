@@ -1,174 +1,117 @@
-![VoidWalker UI](attachments/voidwalker-screenshot.png)
+<div align="center">
+  <img src="attachments/voidwalker-screenshot.png" alt="VoidWalker UI" width="800"/>
+
+  # V O I D W A L K E R
+  **ELITE PENETRATION TESTING ARSENAL BUILDER & WORKSPACE MANAGER**
+
+  [![Version](https://img.shields.io/badge/version-4.2.0-ff2d95?style=for-the-badge&logo=python)](https://github.com/voidwalker)
+  [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-00ff9f?style=for-the-badge&logo=apple)](https://github.com/voidwalker)
+  [![Tools](https://img.shields.io/badge/arsenal-400%2B-ffd166?style=for-the-badge&logo=powershell)](https://github.com/voidwalker)
+  [![C#](https://img.shields.io/badge/compiler-C%23%20%7C%20.NET-8a2be2?style=for-the-badge&logo=csharp)](https://github.com/voidwalker)
+</div>
+
+---
+
+<br>
+
+## ⚡ What is VoidWalker?
+VoidWalker is an advanced, automated toolkit built for Red Teamers, Penetration Testers, and HTB Pro Lab players. It transforms a barebones macOS or Linux system into a fully equipped offensive workstation in minutes.
+
+With **version 4.2.0**, VoidWalker has evolved beyond a simple downloader into a comprehensive engagement framework.
+
+### 🔥 Key Features
+- 🚀 **Blazing Fast Engine**: Multi-threaded, parallel downloads utilizing Python's `ThreadPoolExecutor`. Skips existing files and automatically retries failed connections with exponential backoff.
+- 🔨 **Automated C# Build Pipeline**: Clones and compiles custom C# offensive tools from source via `dotnet build -c Release`. Bypasses basic signature detection by generating fresh binaries.
+- 📓 **Obsidian Vault Scaffolding**: Instantly generates a structured, professional-grade engagement vault equipped with Dataview dashboards, templates (Hosts, Credentials, Findings), and dynamic attack cheatsheets.
+- 🍏 **Cross-Platform Support**: Seamlessly installs dependencies via `apt-get` (Linux) or `brew` (macOS), configuring tools seamlessly across operating systems.
+- 🕷️ **Massive AD Arsenal**: 100% coverage of the 2026 SharpCollection nightly roster, packed with the latest Active Directory exploitation and enumeration tools.
+- 🗄️ **Integrated References**: Access a curated repository of Maldev learning resources, anonymous VPS providers, commercial C2 frameworks, and offensive guides directly from the CLI.
+
+<br>
+
+## 🛠️ The Arsenal
+VoidWalker curates over 400 specialized tools across the following domains:
+
+| Category | Description | Key Tools |
+| :--- | :--- | :--- |
+| **Windows Binaries** | Compiled C# AD recon, credential extraction, and lateral movement. | `Rubeus`, `Seatbelt`, `SharpHound`, `Certify`, `HandleKatz` |
+| **C# Build Targets** | Automated source-to-binary compilation for OPSEC. | `ADCSPwn`, `SharpSCCM`, `GhostlyHollowing`, `SauronEye` |
+| **Maldev & Evasion** | Custom loaders, sleep obfuscators, and shellcode runners. | `Freeze.rs`, `NimPlant`, `Ekko`, `CallStackMasker` |
+| **C2 Frameworks** | Command and Control servers for post-exploitation. | `Havoc`, `Mythic`, `Sliver`, `Empire`, `Covenant` |
+| **PowerShell** | Memory-resident scripts and AMSI bypasses. | `PowerSploit`, `Nishang`, `PowerView`, `Chimera` |
+| **Cross-Platform** | Tunnels, proxies, and relays across OS boundaries. | `Chisel`, `Ligolo-ng`, `Kerbrute`, `Fscan` |
+
+<br>
+
+## ⚙️ Installation & Requirements
+
+### Dependencies
+- Python 3.8+
+- `git`
+- `.NET SDK 8.0+` (Required for the C# compilation pipeline)
+- `brew` (macOS) or `apt` (Linux)
+
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/your-username/voidwalker.git
+cd voidwalker
+
+# Launch the interactive console
+python3 voidwalker.py
+```
+
+<br>
+
+## 🖥️ Usage & Commands
+
+Launch the **interactive cyberpunk TUI** directly by running `python3 voidwalker.py` to access the main menu:
+```text
+[1] 🚀 Install Full Arsenal (400+ tools)
+[2] ⚙️  Select Categories
+[3] ⭐ View All Tools
+[4] ✓  System Packages (apt/brew)
+[5] 💎 Windows Binaries Only
+[6] ⚡ Build C# Tools from Source
+[7] 🛡️  Setup Pentest Obsidian Vault
+[8] 🛡️  View Sources & Guides
+[9] ❌ Exit
+```
+
+### CLI Search Helpers
+VoidWalker includes built-in offline search modules:
+```bash
+python3 voidwalker.py poc CVE-2021-44228   # Search local PoC-in-GitHub databases
+python3 voidwalker.py nse http             # Search Nmap scripts
+python3 voidwalker.py shodan apache        # Shodan terminal query (needs SHODAN_API_KEY)
+python3 voidwalker.py exploitdb wordpress  # Search Exploit-DB
+python3 voidwalker.py dork                 # Interactive Google Dork generator
+```
+
+<br>
+
+## 📓 Obsidian Vault Structure
+Running the `[7] Setup Pentest Obsidian Vault` option scaffolds the following engagement template directly into your `~/voidwalker/Vault` directory:
 
 ```text
-+====================================================================+
-|  V O I D W A L K E R                                               |
-|  ELITE PENETRATION TESTING ARSENAL BUILDER                         |
-|  250+ TOOLS :: UBUNTU/DEBIAN :: CYBERPUNK TUI                       |
-+====================================================================+
-|  [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]    |
-+====================================================================+
+~/voidwalker/Vault/
+├── 01_Admin/          (Rules of Engagement, Scope, Configs)
+├── 02_Recon/          (OSINT, Nmap Scans, AD enumeration)
+├── 03_Hosts/          (Individual Host templates via Dataview)
+├── 04_Credentials/    (Hashes, Kerberos tickets, cleartext)
+├── 05_Findings/       (Vulnerabilities mapped to CVSS)
+├── 06_Payloads/       (Compiled binaries, webshells, scripts)
+├── Cheatsheets/       (AD Attacks, File Transfers, Reverse Shells, etc.)
+└── Dashboard.md       (Live Dataview engagement tracking)
 ```
 
-# VoidWalker
-![Version](https://img.shields.io/badge/version-3.9.2-ff2d95?style=for-the-badge)
-![Python](https://img.shields.io/badge/python-3.x-00e5ff?style=for-the-badge)
-![Platform](https://img.shields.io/badge/platform-Ubuntu%2FDebian-00ff9f?style=for-the-badge)
-![Tools](https://img.shields.io/badge/arsenal-250%2B-ffd166?style=for-the-badge)
-![License](https://img.shields.io/badge/license-Not%20specified-ff5555?style=for-the-badge)
+<br>
 
-```
-+--------------------------------------------------------------------+
-| VOIDWALKER :: ELITE PENETRATION TESTING ARSENAL BUILDER             |
-| Animated TUI installer for Ubuntu/Debian with 250+ security tools   |
-+--------------------------------------------------------------------+
-```
+## ⚠️ Disclaimer
+**AUTHORIZED USE ONLY.** VoidWalker is designed strictly for educational purposes, authorized security testing, and Red Team operations. 
 
-```
-+--------------------------------------------------------------------+
-| WARNING: Authorized use only. For legal, ethical security testing. |
-+--------------------------------------------------------------------+
-```
+- **DO** use on authorized targets only.
+- **DO NOT** run on production systems without explicit consent.
+- **DO NOT** commit the downloaded tool cache into Git.
 
-## What It Does
-- Launches an animated cyberpunk TUI with banners, progress bars, and live status
-- Builds a full workspace at `~/voidwalker` with engagement templates and tool vaults
-- Installs system packages via `apt-get` (Ubuntu/Debian)
-- Installs Python tools via `pipx`
-- Installs Go tools via `go install` (and select .deb packages)
-- **Installs Ruby gems** (wpscan, evil-winrm)
-- **Installs special tools** (kerbrute, ligolo-ng, chisel)
-- Downloads Windows binaries, ZIPs, and Git repos into the Windows toolkit
-- Clones tool repos and downloads files across curated categories
-- **Auto-extracts rockyou.txt** wordlist
-- **Creates bash aliases** for common pentesting commands
-- Provides an installation preview plus success/fail summary stats
-- Includes CLI search helpers for PoCs, NSE scripts, Exploit-DB, Shodan, and dorks
-- **HTB Dante ProLab Ready** - Includes all tools mentioned in HTB Dante walkthroughs
-
-## Arsenal Map
-```
-[ Windows Binaries ] [ PowerShell Scripts ] [ Linux Tools ]
-[ Pivoting Tools ]   [ C2 Frameworks ]     [ Maldev Tools ]
-[ Web Tools ]        [ Cloud Tools ]       [ Container Tools ]
-[ Phishing Tools ]   [ Wireless Tools ]    [ Webshells & Payloads ]
-[ Exploit Frameworks ] [ Wordlists ]
-```
-
-## Setup
-```
-1) Ubuntu/Debian host with sudo access
-2) Python 3
-3) git, pipx, and Go installed (for full tool coverage)
-4) Reliable internet (downloads are large)
-```
-
-Quick start:
-```
-python3 voidwalker.py
-```
-
-Optional env var:
-```
-export SHODAN_API_KEY="your-api-key"
-```
-
-## Usage
-Interactive menu:
-```
-python3 voidwalker.py
-```
-
-Search commands:
-```
-python3 voidwalker.py poc CVE-2021-44228
-python3 voidwalker.py nse http
-python3 voidwalker.py shodan apache
-python3 voidwalker.py exploitdb wordpress
-python3 voidwalker.py dork
-```
-
-## Workspace Layout
-```
-~/voidwalker/
-|-- engagements/
-|   `-- _template/ (notes, scans, loot, exploits, reports)
-|-- tools/
-|   |-- windows/     |-- powershell/ |-- linux/   |-- pivoting/
-|   |-- c2/          |-- maldev/     |-- web/     |-- cloud/
-|   |-- container/   |-- phishing/   |-- wireless/
-|-- payloads/ (webshells, reverse-shells, shellcode)
-|-- wordlists/ (passwords, usernames, directories, subdomains, kerberos)
-|-- notes/ (cheatsheets, methodology)
-|-- scans/
-|-- reports/
-```
-
-## HTB Dante ProLab Support
-VoidWalker now includes comprehensive support for HTB Dante ProLab with all tools from the official walkthroughs:
-
-**Included Features:**
-- ✓ All essential Ubuntu/Debian packages (fping, nmap, enum4linux, patator, etc.)
-- ✓ Ruby gems (wpscan, evil-winrm)
-- ✓ Special tools (kerbrute, ligolo-ng, chisel) - auto-downloaded and installed
-- ✓ Impacket suite (via pipx)
-- ✓ CrackMapExec (via pipx)
-- ✓ LinPEAS, WinPEAS, pspy
-- ✓ BloodHound + SharpHound
-- ✓ Metasploit Framework
-- ✓ Wordlists: SecLists, Trickest wordlists collection
-- ✓ rockyou.txt auto-extraction
-- ✓ Bash aliases for common commands
-
-**Bash Aliases Added:**
-```bash
-# Server aliases
-www              # Python HTTP server on port 80
-wwwphp           # PHP server on port 80
-smbserve         # Impacket SMB server
-
-# Nmap shortcuts
-nmap-quick       # Fast port scan
-nmap-full        # Full service scan
-nmap-vuln        # Vulnerability scan
-
-# Enumeration
-enum-smb         # enum4linux full scan
-enum-ldap        # LDAP enumeration
-ffuf-dir         # Directory fuzzing with SecLists
-```
-
-To activate aliases after installation:
-```bash
-source ~/.bash_aliases
-```
-
-## Do / Don't
-DO
-- Use on authorized targets only
-- Run inside a dedicated VM or lab where possible
-- Review tool licenses and intended use
-- Expect large downloads and storage usage
-- Keep your tool cache updated by re-running the installer
-
-DON'T
-- Run on production systems without approval
-- Assume every downloaded binary is safe or signed
-- Commit the downloaded tool cache into Git
-- Use without understanding local laws and scope
-- Share outputs that contain sensitive data
-
-## Search Helpers (Details)
-- PoC search: uses local `PoC-in-GitHub` repo when available, falls back to GitHub API
-- NSE search: scans local Nmap scripts or suggests common scripts if Nmap is missing
-- Exploit-DB search: greps local `exploitdb` if present, otherwise points to online search
-- Shodan search: uses `SHODAN_API_KEY` if set, otherwise prints example dorks
-- Dork generator: interactive builder with prebuilt dork sets and optional browser open
-
-## Notes
-- Designed for Ubuntu/Debian. Other distros are not supported by the installer flow.
-- The installer uses `apt-get`, `pipx`, `go`, `git`, and direct downloads.
-- Tools and repos are installed under `~/voidwalker`.
-
-## License
-Not specified in this repository.
+The authors are not responsible for any misuse, damage, or illegal activities caused by this tool.
